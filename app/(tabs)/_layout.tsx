@@ -1,11 +1,12 @@
-import { Tabs } from 'expo-router';
+import { Tabs, Link } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { TouchableOpacity } from 'react-native';
 
 export default function TabLayout() {
   return (
     <Tabs screenOptions={{ 
       tabBarActiveTintColor: '#007AFF',
-      headerShown: true 
+      headerShown: false 
     }}>
       <Tabs.Screen
         name="index"

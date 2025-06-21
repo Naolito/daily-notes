@@ -7,10 +7,14 @@ import {
   Platform,
   ScrollView,
   Text,
+  TouchableOpacity,
 } from 'react-native';
 import { format } from 'date-fns';
+import { Link } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import MoodSelector from './MoodSelector';
-import ImagePicker from './ImagePicker';
+import NotebookBackground from './NotebookBackground';
+import PaperTexture from './PaperTexture';
 import { Note, Mood } from '../types';
 import { NoteService } from '../services/noteService';
 
@@ -20,6 +24,7 @@ export default function NoteEditor() {
   const [selectedMood, setSelectedMood] = useState<Mood | undefined>();
   const [images, setImages] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const textInputRef = React.useRef<TextInput>(null);
 
   useEffect(() => {
     loadTodayNote();
@@ -60,15 +65,10 @@ export default function NoteEditor() {
     await NoteService.updateTodayMood(mood);
   };
 
-  const handleAddImage = async (uri: string) => {
-    setImages([...images, uri]);
-    await NoteService.addImageToTodayNote(uri);
+  const focusTextInput = () => {
+    textInputRef.current?.focus();
   };
 
-  const handleRemoveImage = async (uri: string) => {
-    setImages(images.filter(img => img !== uri));
-    await NoteService.removeImageFromTodayNote(uri);
-  };
 
   const today = format(new Date(), 'EEEE, MMMM d');
 
@@ -85,30 +85,36 @@ export default function NoteEditor() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <ScrollView style={styles.scrollView}>
+      <NotebookBackground />
+      <PaperTexture />
+      <Link href="/search" asChild>
+        <TouchableOpacity style={styles.searchButtonTop}>
+          <Ionicons name="search" size={22} color="#fff" />
+        </TouchableOpacity>
+      </Link>
+      <TouchableOpacity 
+        style={styles.touchableArea} 
+        activeOpacity={1}
+        onPress={focusTextInput}
+      >
+        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
         <Text style={styles.dateHeader}>{today}</Text>
         
-        <MoodSelector 
-          selectedMood={selectedMood}
-          onMoodSelect={handleMoodSelect}
-        />
-        
         <TextInput
+          ref={textInputRef}
           style={styles.textInput}
           multiline
-          placeholder="What's on your mind today?"
-          placeholderTextColor="#999"
           value={content}
           onChangeText={handleContentChange}
           textAlignVertical="top"
         />
-        
-        <ImagePicker
-          images={images}
-          onAddImage={handleAddImage}
-          onRemoveImage={handleRemoveImage}
-        />
       </ScrollView>
+      </TouchableOpacity>
+      
+      <MoodSelector 
+        selectedMood={selectedMood}
+        onMoodSelect={handleMoodSelect}
+      />
     </KeyboardAvoidingView>
   );
 }
@@ -116,31 +122,73 @@ export default function NoteEditor() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#fff7cc',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#fff7cc',
   },
   scrollView: {
     flex: 1,
-    padding: 16,
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 40,
+    paddingBottom: 200,
+    flexGrow: 1,
   },
   dateHeader: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 16,
-    color: '#333',
+    fontSize: 32,
+    fontWeight: '400',
+    marginBottom: 25,
+    color: '#2c2c2c',
+    fontFamily: Platform.select({
+      ios: 'Noteworthy-Bold',
+      android: 'sans-serif',
+      default: "'Patrick Hand', cursive"
+    }),
+    textAlign: 'center',
+    letterSpacing: -0.5,
   },
   textInput: {
-    fontSize: 16,
-    lineHeight: 24,
-    color: '#333',
-    minHeight: 200,
-    padding: 12,
-    backgroundColor: '#F8F9FA',
-    borderRadius: 8,
+    fontSize: 22,
+    lineHeight: 28,
+    color: '#1a1a1a',
+    flex: 1,
+    minHeight: 500,
+    backgroundColor: 'transparent',
     marginBottom: 16,
+    fontFamily: Platform.select({
+      ios: 'Noteworthy-Light',
+      android: 'sans-serif',
+      default: "'Comic Neue', cursive"
+    }),
+    textAlignVertical: 'top',
+    letterSpacing: -0.3,
+    fontWeight: '300',
+    paddingTop: 0,
+    paddingBottom: 20,
+  },
+  touchableArea: {
+    flex: 1,
+  },
+  searchButtonTop: {
+    position: 'absolute',
+    top: 10,
+    right: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#4CAF50',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    zIndex: 10,
   },
 });

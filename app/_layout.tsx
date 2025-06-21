@@ -1,6 +1,7 @@
 import { Stack } from 'expo-router';
 import { useEffect } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
+import WebFonts from '../components/WebFonts';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -10,15 +11,18 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <Stack>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen 
-        name="search" 
-        options={{ 
-          title: 'Search Notes',
-          presentation: 'modal'
-        }} 
-      />
-    </Stack>
+    <>
+      <WebFonts />
+      <Stack>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen 
+          name="search" 
+          options={{ 
+            title: 'Search Notes',
+            presentation: 'modal'
+          }} 
+        />
+      </Stack>
+    </>
   );
 }

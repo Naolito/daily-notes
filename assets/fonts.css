@@ -1,0 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&family=Caveat:wght@400;500;600;700&family=Indie+Flower&display=swap');
+
+/* Override for web platform */
+body {
+  font-family: 'Kalam', cursive !important;
+}
+
+/* For date headers */
+.date-header {
+  font-family: 'Caveat', cursive !important;
+  font-weight: 700;
+}
+
+/* For main text */
+.text-input {
+  font-family: 'Kalam', cursive !important;
+  font-weight: 300;
+}
+
+/* For mood title */
+.mood-title {
+  font-family: 'Indie Flower', cursive !important;
+}

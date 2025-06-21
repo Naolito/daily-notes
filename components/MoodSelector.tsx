@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { Mood } from '../types';
+import { VerySadEmoji, SadEmoji, NeutralEmoji, HappyEmoji, VeryHappyEmoji } from './FlatEmojis';
 
 interface MoodSelectorProps {
   selectedMood?: Mood;
@@ -8,11 +9,11 @@ interface MoodSelectorProps {
 }
 
 const moods = [
-  { value: 1, emoji: '😢', color: '#FF6B6B' },
-  { value: 2, emoji: '😕', color: '#FFA06B' },
-  { value: 3, emoji: '😐', color: '#FFD93D' },
-  { value: 4, emoji: '🙂', color: '#6BCF7F' },
-  { value: 5, emoji: '😊', color: '#4ECDC4' },
+  { value: 1, component: VerySadEmoji },
+  { value: 2, component: SadEmoji },
+  { value: 3, component: NeutralEmoji },
+  { value: 4, component: HappyEmoji },
+  { value: 5, component: VeryHappyEmoji },
 ] as const;
 
 export default function MoodSelector({ selectedMood, onMoodSelect }: MoodSelectorProps) {
@@ -20,18 +21,21 @@ export default function MoodSelector({ selectedMood, onMoodSelect }: MoodSelecto
     <View style={styles.container}>
       <Text style={styles.title}>How did you feel today?</Text>
       <View style={styles.moodContainer}>
-        {moods.map((mood) => (
-          <TouchableOpacity
-            key={mood.value}
-            style={[
-              styles.moodButton,
-              selectedMood === mood.value && { backgroundColor: mood.color + '30' }
-            ]}
-            onPress={() => onMoodSelect(mood.value as Mood)}
-          >
-            <Text style={styles.moodEmoji}>{mood.emoji}</Text>
-          </TouchableOpacity>
-        ))}
+        {moods.map((mood) => {
+          const EmojiComponent = mood.component;
+          return (
+            <TouchableOpacity
+              key={mood.value}
+              style={[
+                styles.moodButton,
+                selectedMood === mood.value && styles.selectedMood
+              ]}
+              onPress={() => onMoodSelect(mood.value as Mood)}
+            >
+              <EmojiComponent size={selectedMood === mood.value ? 70 : 60} />
+            </TouchableOpacity>
+          );
+        })}
       </View>
     </View>
   );
@@ -39,27 +43,38 @@ export default function MoodSelector({ selectedMood, onMoodSelect }: MoodSelecto
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#F8F9FA',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 16,
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 20,
+    paddingBottom: 30,
   },
   title: {
-    fontSize: 16,
-    fontWeight: '500',
+    fontSize: 24,
     textAlign: 'center',
-    marginBottom: 12,
-    color: '#333',
+    marginBottom: 0,
+    color: '#2c2c2c',
+    fontFamily: Platform.select({
+      ios: 'Noteworthy-Light',
+      android: 'sans-serif',
+      default: "'Permanent Marker', cursive"
+    }),
+    transform: [{ rotate: '-1.5deg' }],
+    letterSpacing: -0.5,
+    fontWeight: '300',
   },
   moodContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
+    alignItems: 'center',
+    paddingHorizontal: 10,
   },
   moodButton: {
-    padding: 12,
-    borderRadius: 50,
+    padding: 5,
+    transform: [{ scale: 1 }],
   },
-  moodEmoji: {
-    fontSize: 32,
+  selectedMood: {
+    transform: [{ scale: 1.15 }],
   },
 });
