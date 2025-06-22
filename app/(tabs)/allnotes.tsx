@@ -7,6 +7,7 @@ import {
   Platform,
   ScrollView,
   Dimensions,
+  TextInput,
 } from 'react-native';
 import { format } from 'date-fns';
 import { useFocusEffect } from '@react-navigation/native';
@@ -37,7 +38,30 @@ const getMoodEmoji = (mood: number) => {
   }
 };
 
-const NoteItem = ({ item }: { item: Note }) => {
+const HighlightedText = ({ text, searchText }: { text: string; searchText: string }) => {
+  if (!searchText.trim()) {
+    return <Text style={styles.noteText}>{text}</Text>;
+  }
+
+  const parts = text.split(new RegExp(`(${searchText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
+  
+  return (
+    <Text style={styles.noteText}>
+      {parts.map((part, index) => {
+        if (part.toLowerCase() === searchText.toLowerCase()) {
+          return (
+            <Text key={index} style={styles.highlightedText}>
+              {part}
+            </Text>
+          );
+        }
+        return part;
+      })}
+    </Text>
+  );
+};
+
+const NoteItem = ({ item, searchText }: { item: Note; searchText: string }) => {
   const [itemHeight, setItemHeight] = useState(0);
   const noteWidth = screenWidth - 32;
   const borderColor = item.mood ? moodColors[item.mood] : '#333';
@@ -62,9 +86,7 @@ const NoteItem = ({ item }: { item: Note }) => {
           </Text>
           {item.mood && getMoodEmoji(item.mood)}
         </View>
-        <Text style={styles.noteText}>
-          {item.content || 'No content'}
-        </Text>
+        <HighlightedText text={item.content || 'No content'} searchText={searchText} />
       </TouchableOpacity>
     </View>
   );
@@ -73,6 +95,7 @@ const NoteItem = ({ item }: { item: Note }) => {
 export default function AllNotesScreen() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchText, setSearchText] = useState('');
   const scrollViewRef = useRef<ScrollView>(null);
 
   useEffect(() => {
@@ -135,11 +158,25 @@ export default function AllNotesScreen() {
           <NotebookBackground startFromTop={true} />
         </View>
         <View style={styles.notesContainer}>
-          {notes.map((item) => (
-            <NoteItem key={item.id} item={item} />
-          ))}
+          {notes
+            .filter((item) => {
+              if (!searchText.trim()) return true;
+              return item.content?.toLowerCase().includes(searchText.toLowerCase());
+            })
+            .map((item) => (
+              <NoteItem key={item.id} item={item} searchText={searchText} />
+            ))}
         </View>
       </ScrollView>
+      <View style={styles.searchBarContainer}>
+        <TextInput
+          style={styles.searchBar}
+          placeholder="Search..."
+          placeholderTextColor="#999"
+          value={searchText}
+          onChangeText={setSearchText}
+        />
+      </View>
     </View>
   );
 }
@@ -147,7 +184,7 @@ export default function AllNotesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff7cc',
+    backgroundColor: '#faf0e6',
   },
   scrollView: {
     flex: 1,
@@ -156,13 +193,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff7cc',
+    backgroundColor: '#faf0e6',
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff7cc',
+    backgroundColor: '#faf0e6',
     padding: 20,
   },
   emptyText: {
@@ -186,6 +223,7 @@ const styles = StyleSheet.create({
   },
   notesContainer: {
     padding: 16,
+    paddingBottom: 80, // Extra padding for search bar
   },
   noteWrapper: {
     marginBottom: 16,
@@ -218,5 +256,33 @@ const styles = StyleSheet.create({
     color: '#1a1a1a',
     fontFamily: 'LettersForLearners',
     letterSpacing: -0.3,
+  },
+  searchBarContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#faf0e6',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+  },
+  searchBar: {
+    backgroundColor: 'white',
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    fontSize: 16,
+    fontFamily: Platform.select({
+      ios: 'System',
+      android: 'Roboto',
+      default: 'sans-serif'
+    }),
+    color: '#333',
+  },
+  highlightedText: {
+    backgroundColor: '#ffeb3b',
+    color: '#1a1a1a',
   },
 });

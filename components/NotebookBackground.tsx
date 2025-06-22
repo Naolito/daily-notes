@@ -16,7 +16,7 @@ export default function NotebookBackground({ height = screenHeight, startFromTop
     <View style={[StyleSheet.absoluteFillObject, { height }]} pointerEvents="none">
       {/* Líneas horizontales */}
       {Array.from({ length: numberOfLines }).map((_, index) => {
-        const opacity = 0.08 + Math.random() * 0.04;
+        const opacity = 0.04 + Math.random() * 0.02;
         const translateY = (Math.random() - 0.5) * 1;
         const scaleX = 0.998 + Math.random() * 0.004;
         

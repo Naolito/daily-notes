@@ -247,13 +247,13 @@ export default function NoteEditor() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff7cc',
+    backgroundColor: '#faf0e6',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff7cc',
+    backgroundColor: '#faf0e6',
   },
   scrollView: {
     flex: 1,
