@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, StyleSheet, Text, TouchableOpacity, PanResponder, Animated, ActivityIndicator, Dimensions } from 'react-native';
 import { format, addMonths, subMonths, startOfMonth } from 'date-fns';
 import { useRouter } from 'expo-router';
@@ -23,18 +23,11 @@ export default function CalendarScreen() {
   const router = useRouter();
   
   // Animation for swipe
-  const translateX = React.useRef(new Animated.Value(0)).current;
-  
-  // Get the three months we need
-  const prevMonth = subMonths(currentMonth, 1);
-  const nextMonth = addMonths(currentMonth, 1);
+  const translateX = useRef(new Animated.Value(0)).current;
   
   // Load notes for a specific month
-  const loadMonthNotes = React.useCallback(async (month: Date) => {
+  const loadMonthNotes = async (month: Date): Promise<Note[]> => {
     const monthKey = format(month, 'yyyy-MM');
-    
-    // If already loaded, skip
-    if (monthsData[monthKey]) return;
     
     try {
       const allNotes = await HybridStorageService.getAllNotes();
@@ -46,51 +39,68 @@ export default function CalendarScreen() {
         return noteDate >= monthStart && noteDate <= monthEnd;
       });
       
-      setMonthsData(prev => ({
-        ...prev,
-        [monthKey]: filteredNotes
-      }));
+      return filteredNotes;
     } catch (error) {
       console.error('Error loading notes:', error);
+      return [];
     }
-  }, [monthsData]);
+  };
 
   // Load current month and adjacent months
   const loadAdjacentMonths = React.useCallback(async () => {
     setIsLoading(true);
-    await Promise.all([
-      loadMonthNotes(prevMonth),
-      loadMonthNotes(currentMonth),
-      loadMonthNotes(nextMonth),
-    ]);
-    setIsLoading(false);
-  }, [currentMonth, prevMonth, nextMonth, loadMonthNotes]);
+    
+    const prevMonth = subMonths(currentMonth, 1);
+    const nextMonth = addMonths(currentMonth, 1);
+    
+    try {
+      const [prevNotes, currentNotes, nextNotes] = await Promise.all([
+        loadMonthNotes(prevMonth),
+        loadMonthNotes(currentMonth),
+        loadMonthNotes(nextMonth),
+      ]);
+      
+      setMonthsData({
+        [format(prevMonth, 'yyyy-MM')]: prevNotes,
+        [format(currentMonth, 'yyyy-MM')]: currentNotes,
+        [format(nextMonth, 'yyyy-MM')]: nextNotes,
+      });
+    } catch (error) {
+      console.error('Error loading months:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [currentMonth]);
 
   useEffect(() => {
     loadAdjacentMonths();
-  }, [currentMonth]);
+  }, [loadAdjacentMonths]);
 
   useFocusEffect(
     React.useCallback(() => {
-      // Reload current month when screen gains focus
-      const monthKey = format(currentMonth, 'yyyy-MM');
-      setMonthsData(prev => {
-        const updated = { ...prev };
-        delete updated[monthKey];
-        return updated;
-      });
-      loadMonthNotes(currentMonth);
-    }, [currentMonth, loadMonthNotes])
+      loadAdjacentMonths();
+    }, [loadAdjacentMonths])
   );
 
   // Handle month navigation
   const navigateMonth = (direction: 'prev' | 'next') => {
-    const newMonth = direction === 'next' ? nextMonth : prevMonth;
-    setCurrentMonth(newMonth);
+    const newMonth = direction === 'next' 
+      ? addMonths(currentMonth, 1) 
+      : subMonths(currentMonth, 1);
+    
+    // Animate transition
+    Animated.timing(translateX, {
+      toValue: direction === 'next' ? -screenWidth : screenWidth,
+      duration: 200,
+      useNativeDriver: true,
+    }).start(() => {
+      setCurrentMonth(newMonth);
+      translateX.setValue(0);
+    });
   };
 
   // Pan responder for swipe gestures
-  const panResponder = React.useRef(
+  const panResponder = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: (_, gestureState) => {
         return Math.abs(gestureState.dx) > 20;
@@ -100,27 +110,10 @@ export default function CalendarScreen() {
       },
       onPanResponderRelease: (_, gestureState) => {
         if (gestureState.dx > 50) {
-          // Swipe right - go to previous month
-          Animated.timing(translateX, {
-            toValue: screenWidth,
-            duration: 200,
-            useNativeDriver: true,
-          }).start(() => {
-            navigateMonth('prev');
-            translateX.setValue(0);
-          });
+          navigateMonth('prev');
         } else if (gestureState.dx < -50) {
-          // Swipe left - go to next month
-          Animated.timing(translateX, {
-            toValue: -screenWidth,
-            duration: 200,
-            useNativeDriver: true,
-          }).start(() => {
-            navigateMonth('next');
-            translateX.setValue(0);
-          });
+          navigateMonth('next');
         } else {
-          // Snap back
           Animated.spring(translateX, {
             toValue: 0,
             useNativeDriver: true,
@@ -174,7 +167,6 @@ export default function CalendarScreen() {
             transform: [{ translateX }]
           }
         ]}
-        {...panResponder.panHandlers}
       >
         <TouchableOpacity 
           onPress={() => navigateMonth('prev')}
@@ -183,22 +175,9 @@ export default function CalendarScreen() {
           <Ionicons name="chevron-back" size={24} color={theme.primaryText} />
         </TouchableOpacity>
         
-        <View style={styles.monthTitleContainer}>
-          {/* Previous month (hidden, for swipe) */}
-          <Text style={[styles.monthTitle, styles.hiddenMonth, { color: theme.primaryText }]}>
-            {format(prevMonth, 'MMMM yyyy')}
-          </Text>
-          
-          {/* Current month */}
-          <Text style={[styles.monthTitle, { color: theme.primaryText }]}>
-            {format(currentMonth, 'MMMM yyyy')}
-          </Text>
-          
-          {/* Next month (hidden, for swipe) */}
-          <Text style={[styles.monthTitle, styles.hiddenMonth, { color: theme.primaryText }]}>
-            {format(nextMonth, 'MMMM yyyy')}
-          </Text>
-        </View>
+        <Text style={[styles.monthTitle, { color: theme.primaryText }]}>
+          {format(currentMonth, 'MMMM yyyy')}
+        </Text>
         
         <TouchableOpacity 
           onPress={() => navigateMonth('next')}
@@ -210,56 +189,29 @@ export default function CalendarScreen() {
       
       {/* Calendar content */}
       <View style={styles.calendarWrapper}>
-        <Animated.View 
-          style={[
-            styles.calendarContainer,
-            {
-              transform: [{ translateX }],
-            },
-          ]}
-          {...panResponder.panHandlers}
-        >
-          {isLoading ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={theme.primaryText} />
-            </View>
-          ) : (
-            <View style={styles.monthsContainer}>
-              {/* Previous month */}
-              <View style={styles.monthView}>
-                <CalendarGrid
-                  monthData={getMonthData(prevMonth)}
-                  monthDate={prevMonth}
-                  selectedDate={null}
-                  onDateSelect={handleDateSelect}
-                  notes={monthsData[format(prevMonth, 'yyyy-MM')] || []}
-                />
-              </View>
-              
-              {/* Current month */}
-              <View style={styles.monthView}>
-                <CalendarGrid
-                  monthData={getMonthData(currentMonth)}
-                  monthDate={currentMonth}
-                  selectedDate={null}
-                  onDateSelect={handleDateSelect}
-                  notes={monthsData[format(currentMonth, 'yyyy-MM')] || []}
-                />
-              </View>
-              
-              {/* Next month */}
-              <View style={styles.monthView}>
-                <CalendarGrid
-                  monthData={getMonthData(nextMonth)}
-                  monthDate={nextMonth}
-                  selectedDate={null}
-                  onDateSelect={handleDateSelect}
-                  notes={monthsData[format(nextMonth, 'yyyy-MM')] || []}
-                />
-              </View>
-            </View>
-          )}
-        </Animated.View>
+        {isLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={theme.primaryText} />
+          </View>
+        ) : (
+          <Animated.View 
+            style={[
+              styles.calendarContainer,
+              {
+                transform: [{ translateX }],
+              },
+            ]}
+            {...panResponder.panHandlers}
+          >
+            <CalendarGrid
+              monthData={getMonthData(currentMonth)}
+              monthDate={currentMonth}
+              selectedDate={null}
+              onDateSelect={handleDateSelect}
+              notes={monthsData[format(currentMonth, 'yyyy-MM')] || []}
+            />
+          </Animated.View>
+        )}
       </View>
     </View>
   );
@@ -279,36 +231,17 @@ const styles = StyleSheet.create({
   navButton: {
     padding: 10,
   },
-  monthTitleContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-  },
   monthTitle: {
     fontSize: responsiveFontSize(24),
     fontWeight: '600',
-    position: 'absolute',
-  },
-  hiddenMonth: {
-    opacity: 0,
   },
   calendarWrapper: {
     flex: 1,
     overflow: 'hidden',
+    paddingHorizontal: 16,
   },
   calendarContainer: {
     flex: 1,
-  },
-  monthsContainer: {
-    flexDirection: 'row',
-    width: screenWidth * 3,
-    marginLeft: -screenWidth,
-  },
-  monthView: {
-    width: screenWidth,
-    paddingHorizontal: 16,
   },
   loadingContainer: {
     flex: 1,
