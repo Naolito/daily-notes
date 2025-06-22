@@ -376,7 +376,7 @@ export default function NoteEditor() {
                 color: theme.primaryText,
                 fontFamily: theme.useHandwrittenFont ? 'LettersForLearners' : undefined,
                 fontSize: theme.useHandwrittenFont ? 26 : 18,
-                lineHeight: responsivePadding(26),
+                lineHeight: 26,
                 paddingTop: 0,
               }
             ]}
@@ -451,7 +451,7 @@ const styles = StyleSheet.create({
   },
   textInput: {
     fontSize: 26,
-    lineHeight: responsivePadding(26), // Exact match with notebook lines
+    lineHeight: 26, // Fixed line height to match notebook lines
     color: '#1a1a1a',
     backgroundColor: 'transparent',
     textAlignVertical: 'top',

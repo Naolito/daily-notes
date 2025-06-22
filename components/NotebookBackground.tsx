@@ -1,8 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
-import { responsivePadding } from '../utils/responsive';
 
-const LINE_HEIGHT = responsivePadding(26); // Tighter line spacing
+const LINE_HEIGHT = 26; // Fixed line height, not responsive
 
 interface NotebookBackgroundProps {
   height?: number;
@@ -33,8 +32,8 @@ export default function NotebookBackground({
         // Calculate the base position for the line
         // For text alignment, first line should be at the baseline of first line of text
         const firstLineOffset = startFromTop ? 
-          textOffset + responsivePadding(26) - 4 : // Text baseline position
-          responsivePadding(80);
+          textOffset + 26 - 4 : // Text baseline position
+          80;
         const linePosition = firstLineOffset + (index * LINE_HEIGHT);
         
         return (

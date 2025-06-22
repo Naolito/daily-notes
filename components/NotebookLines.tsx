@@ -1,8 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
-import { responsivePadding } from '../utils/responsive';
 
-const LINE_HEIGHT = responsivePadding(26);
+const LINE_HEIGHT = 26; // Fixed line height, not responsive
 
 interface NotebookLinesProps {
   lineColor?: string;
