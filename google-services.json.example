@@ -1,0 +1,12 @@
+{
+  "_comment": "This is an example file. You need to download your actual google-services.json from Firebase Console",
+  "_instructions": [
+    "1. Go to Firebase Console (https://console.firebase.google.com)",
+    "2. Select your project",
+    "3. Click on the gear icon next to 'Project Overview'",
+    "4. Select 'Project settings'",
+    "5. In the 'Your apps' section, find your Android app",
+    "6. Click 'Download google-services.json'",
+    "7. Replace this file with the downloaded one (remove .example extension)"
+  ]
+}

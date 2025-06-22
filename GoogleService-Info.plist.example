@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>_comment</key>
+	<string>This is an example file. You need to download your actual GoogleService-Info.plist from Firebase Console</string>
+	<key>_instructions</key>
+	<array>
+		<string>1. Go to Firebase Console (https://console.firebase.google.com)</string>
+		<string>2. Select your project</string>
+		<string>3. Click on the gear icon next to 'Project Overview'</string>
+		<string>4. Select 'Project settings'</string>
+		<string>5. In the 'Your apps' section, find your iOS app</string>
+		<string>6. Click 'Download GoogleService-Info.plist'</string>
+		<string>7. Replace this file with the downloaded one (remove .example extension)</string>
+	</array>
+</dict>
+</plist>

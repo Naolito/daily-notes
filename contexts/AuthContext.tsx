@@ -3,6 +3,8 @@ import { User } from 'firebase/auth';
 import AuthService from '../services/authService';
 import HybridStorage from '../services/hybridStorage';
 import SilentAuth from '../services/silentAuth';
+import { setCrashlyticsUserId, setCrashlyticsAttributes } from '../config/firebase';
+import { Platform } from 'react-native';
 
 interface AuthContextType {
   user: User | null;
@@ -38,6 +40,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Subscribe to auth state changes
     const unsubscribe = AuthService.addAuthStateListener((newUser) => {
       setUser(newUser);
+      
+      // Set Crashlytics user ID for native platforms
+      if (Platform.OS !== 'web') {
+        if (newUser) {
+          setCrashlyticsUserId(newUser.uid);
+          setCrashlyticsAttributes({
+            email: newUser.email || 'anonymous',
+            provider: newUser.providerData[0]?.providerId || 'unknown'
+          });
+        } else {
+          setCrashlyticsUserId('anonymous');
+        }
+      }
     });
 
     return unsubscribe;

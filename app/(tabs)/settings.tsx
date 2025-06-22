@@ -6,7 +6,8 @@ import {
   ScrollView, 
   TouchableOpacity,
   Alert,
-  Platform
+  Platform,
+  Modal
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import HybridStorageService from '../../services/hybridStorage';
@@ -14,6 +15,7 @@ import { useTheme, ThemeType } from '../../contexts/ThemeContext';
 import { useRouter } from 'expo-router';
 import { auth } from '../../config/firebase';
 import SilentAuthService from '../../services/silentAuth';
+import CrashlyticsTest from '../../components/CrashlyticsTest';
 
 const skins = [
   { id: 'notebook', name: 'Classic Notebook', color: '#f5f0eb' },
@@ -26,6 +28,7 @@ export default function SettingsScreen() {
   const { theme, themeType, setTheme } = useTheme();
   const [contentHeight, setContentHeight] = useState(0);
   const [isAnonymous, setIsAnonymous] = useState(false);
+  const [showCrashlyticsTest, setShowCrashlyticsTest] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -219,8 +222,51 @@ export default function SettingsScreen() {
               onPress={() => Alert.alert('Contact', 'Email: support@dailynotes.app')}
             />
           </View>
+          
+          {/* Development Section - Only show in development */}
+          {__DEV__ && Platform.OS !== 'web' && (
+            <>
+              <View style={[styles.divider, { backgroundColor: theme.dividerColor }]} />
+              
+              <Text style={[styles.sectionTitle, { color: theme.primaryText }]}>Development</Text>
+              
+              <View style={styles.settingsGroup}>
+                <SettingItem 
+                  title="Test Crashlytics" 
+                  icon="bug-outline"
+                  onPress={() => setShowCrashlyticsTest(true)}
+                />
+              </View>
+            </>
+          )}
         </View>
       </ScrollView>
+      
+      {/* Crashlytics Test Modal */}
+      <Modal
+        visible={showCrashlyticsTest}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowCrashlyticsTest(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={[styles.modalContent, { backgroundColor: theme.backgroundColor }]}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: theme.primaryText }]}>
+                Crashlytics Test
+              </Text>
+              <TouchableOpacity
+                onPress={() => setShowCrashlyticsTest(false)}
+                style={styles.closeButton}
+              >
+                <Ionicons name="close" size={24} color={theme.primaryText} />
+              </TouchableOpacity>
+            </View>
+            
+            <CrashlyticsTest />
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -309,5 +355,35 @@ const styles = StyleSheet.create({
   settingText: {
     fontSize: 15,
     color: '#333',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    width: '90%',
+    maxHeight: '80%',
+    borderRadius: 12,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+  },
+  closeButton: {
+    padding: 4,
   },
 });
