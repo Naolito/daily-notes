@@ -13,15 +13,16 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.dailynotes.app"
+      "bundleIdentifier": "com.naolito.dailynotes"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.dailynotes.app",
-      "versionCode": 1
+      "package": "com.naolito.dailynotes",
+      "versionCode": 1,
+      "googleServicesFile": "./android/app/google-services.json"
     },
     "web": {
       "favicon": "./assets/favicon.png"

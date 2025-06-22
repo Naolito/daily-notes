@@ -8,25 +8,31 @@
       "developmentClient": true,
       "distribution": "internal",
       "android": {
-        "buildType": "apk",
-        "googleServicesFile": "@GOOGLE_SERVICES_JSON"
+        "buildType": "apk"
       },
       "ios": {
         "simulator": true
+      },
+      "env": {
+        "GOOGLE_SERVICES_JSON": "@GOOGLE_SERVICES_JSON"
       }
     },
     "preview": {
       "distribution": "internal",
       "android": {
-        "buildType": "apk",
-        "googleServicesFile": "@GOOGLE_SERVICES_JSON"
+        "buildType": "apk"
+      },
+      "env": {
+        "GOOGLE_SERVICES_JSON": "@GOOGLE_SERVICES_JSON"
       }
     },
     "production": {
       "autoIncrement": true,
       "android": {
-        "buildType": "app-bundle",
-        "googleServicesFile": "@GOOGLE_SERVICES_JSON"
+        "buildType": "app-bundle"
+      },
+      "env": {
+        "GOOGLE_SERVICES_JSON": "@GOOGLE_SERVICES_JSON"
       }
     }
   },

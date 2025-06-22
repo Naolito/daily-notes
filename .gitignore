@@ -37,6 +37,7 @@ yarn-error.*
 # Firebase config files
 google-services.json
 GoogleService-Info.plist
+android/app/google-services.json
 
 # typescript
 *.tsbuildinfo
