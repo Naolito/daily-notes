@@ -110,7 +110,7 @@ export default function SettingsScreen() {
         onPress={onPress}
       >
         <View style={styles.settingContent}>
-          <Ionicons name={icon} size={24} color={danger ? '#F44336' : theme.secondaryText} />
+          <Ionicons name={icon} size={20} color={danger ? '#F44336' : theme.secondaryText} />
           <Text style={[styles.settingText, { color: danger ? '#F44336' : theme.primaryText }]}>{title}</Text>
         </View>
       </TouchableOpacity>
@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingVertical: 8,
   },
   accountText: {
     fontSize: 14,
@@ -244,26 +244,26 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    padding: 20,
-    paddingBottom: 100,
+    padding: 16,
+    paddingBottom: 40,
   },
   sectionTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '600',
     color: '#2c2c2c',
-    marginBottom: 20,
-    marginTop: 30,
+    marginBottom: 12,
+    marginTop: 16,
     marginHorizontal: 20,
   },
   skinSelector: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   skinOption: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     borderWidth: 2,
     borderColor: '#ddd',
     alignItems: 'center',
@@ -279,25 +279,26 @@ const styles = StyleSheet.create({
   },
   skinName: {
     textAlign: 'center',
-    fontSize: 16,
+    fontSize: 14,
     color: '#666',
-    marginBottom: 20,
+    marginBottom: 12,
   },
   divider: {
     height: 1,
     backgroundColor: '#e0e0e0',
-    marginVertical: 20,
+    marginVertical: 12,
   },
   settingsGroup: {
     marginHorizontal: 20,
+    marginBottom: 0,
   },
   settingItem: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgb(220, 214, 214)',
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    marginBottom: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginBottom: 8,
     borderRadius: 8,
   },
   settingContent: {
@@ -306,7 +307,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   settingText: {
-    fontSize: 16,
+    fontSize: 15,
     color: '#333',
   },
 });
