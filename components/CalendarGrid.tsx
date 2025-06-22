@@ -1,13 +1,14 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, startOfWeek, endOfWeek } from 'date-fns';
-import { DayData } from '../types';
+import { DayData, Note } from '../types';
 
 interface CalendarGridProps {
   monthData: DayData[];
   monthDate: Date;
   selectedDate: Date | null;
   onDateSelect: (date: Date) => void;
+  notes?: Note[];
 }
 
 const moodColors = {
@@ -18,7 +19,16 @@ const moodColors = {
   5: '#4CAF50',
 };
 
-export default function CalendarGrid({ monthData, monthDate, selectedDate, onDateSelect }: CalendarGridProps) {
+// Function to darken a color by 30%
+const darkenColor = (hex: string): string => {
+  const num = parseInt(hex.replace('#', ''), 16);
+  const r = Math.max(0, (num >> 16) * 0.7);
+  const g = Math.max(0, ((num >> 8) & 0x00FF) * 0.7);
+  const b = Math.max(0, (num & 0x0000FF) * 0.7);
+  return '#' + ((1 << 24) + (Math.round(r) << 16) + (Math.round(g) << 8) + Math.round(b)).toString(16).slice(1);
+};
+
+export default function CalendarGrid({ monthData, monthDate, selectedDate, onDateSelect, notes = [] }: CalendarGridProps) {
   const monthStart = startOfMonth(monthDate);
   const monthEnd = endOfMonth(monthDate);
   const startDate = startOfWeek(monthStart);
@@ -49,6 +59,14 @@ export default function CalendarGrid({ monthData, monthDate, selectedDate, onDat
           const hasNote = dayData?.hasNote;
           const moodColor = dayData?.mood ? moodColors[dayData.mood] : undefined;
           
+          // Check if this date has content
+          const dateStr = format(day, 'yyyy-MM-dd');
+          const noteWithContent = notes.find(n => n.date === dateStr && n.content && n.content.trim().length > 0);
+          const hasContent = !!noteWithContent;
+          
+          // Determine dot color (darken the box color by 30%)
+          const dotColor = moodColor ? darkenColor(moodColor) : darkenColor('#dcd6d6');
+          
           return (
             <TouchableOpacity
               key={day.toISOString()}
@@ -73,6 +91,9 @@ export default function CalendarGrid({ monthData, monthDate, selectedDate, onDat
                 ]}>
                   {format(day, 'd')}
                 </Text>
+                {hasContent && (
+                  <View style={[styles.contentIndicator, { backgroundColor: dotColor }]} />
+                )}
               </View>
             </TouchableOpacity>
           );
@@ -111,10 +132,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 8,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: 'rgb(220, 214, 214)',
   },
   emptyDayBox: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: 'rgb(220, 214, 214)',
   },
   selectedDayBox: {
     borderWidth: 2,
@@ -140,5 +161,13 @@ const styles = StyleSheet.create({
   },
   selectedDayText: {
     fontWeight: 'bold',
+  },
+  contentIndicator: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
   },
 });

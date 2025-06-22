@@ -6,12 +6,23 @@ export default function TabLayout() {
   return (
     <Tabs screenOptions={{ 
       tabBarActiveTintColor: '#007AFF',
-      headerShown: false 
+      headerShown: false,
+      tabBarStyle: {
+        height: 70,
+        paddingBottom: 8,
+        paddingTop: 8,
+        overflow: 'visible', // Allow content to show
+      },
+      tabBarLabelStyle: {
+        fontSize: 12,
+        marginTop: 2,
+        overflow: 'visible', // Prevent text clipping
+      }
     }}>
       <Tabs.Screen
         name="index"
         options={{
-          title: "Today's Notes",
+          title: "Today",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="today-outline" size={size} color={color} />
           ),

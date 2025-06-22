@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { screenHeight, responsivePadding } from '../utils/responsive';
 
-const LINE_HEIGHT = responsivePadding(30); // Standard line spacing
+const LINE_HEIGHT = responsivePadding(26); // Tighter line spacing
 
 interface NotebookBackgroundProps {
   height?: number;

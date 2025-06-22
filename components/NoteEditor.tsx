@@ -195,7 +195,7 @@ export default function NoteEditor() {
         >
           {dateBoxHeight > 0 && (
             <SimpleDashedBorder 
-              width={screenWidth - 32} 
+              width={screenWidth - 64} 
               height={dateBoxHeight} 
               color={selectedMood ? moodColors[selectedMood] : '#333'} 
             />
@@ -251,19 +251,19 @@ export default function NoteEditor() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#faf0e6',
+    backgroundColor: '#f5f0eb',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#faf0e6',
+    backgroundColor: '#f5f0eb',
   },
   scrollView: {
     flex: 1,
   },
   contentContainer: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 32, // More side margins
     paddingTop: 16,
     flex: 1,
   },
@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
   },
   textInput: {
     fontSize: 26, // Intermediate between 22 and 33
-    lineHeight: 30, // Match line spacing
+    lineHeight: 26, // Match line spacing
     color: '#1a1a1a',
     backgroundColor: 'transparent',
     fontFamily: 'LettersForLearners',

@@ -3,12 +3,14 @@ import { View, StyleSheet, ScrollView, Text, TouchableOpacity, FlatList } from '
 import { format, addMonths, subMonths, startOfMonth } from 'date-fns';
 import { useRouter } from 'expo-router';
 import CalendarGrid from '../../components/CalendarGrid';
+import NotebookBackground from '../../components/NotebookBackground';
 import { StorageService } from '../../services/storage';
 import { DayData, Note } from '../../types';
 
 export default function CalendarScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [allNotes, setAllNotes] = useState<Note[]>([]);
+  const [contentHeight, setContentHeight] = useState(0);
   const scrollViewRef = React.useRef<ScrollView>(null);
   const router = useRouter();
   
@@ -63,6 +65,9 @@ export default function CalendarScreen() {
         ref={scrollViewRef}
         style={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
+        onContentSizeChange={(contentWidth, contentHeight) => {
+          setContentHeight(contentHeight);
+        }}
       >
         {months.map((monthDate, index) => (
           <View key={monthDate.toISOString()} style={styles.monthContainer}>
@@ -77,6 +82,7 @@ export default function CalendarScreen() {
                   : null
               }
               onDateSelect={handleDateSelect}
+              notes={allNotes}
             />
           </View>
         ))}
@@ -88,7 +94,7 @@ export default function CalendarScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#f5f0eb',
   },
   scrollContainer: {
     flex: 1,

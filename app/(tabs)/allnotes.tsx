@@ -193,7 +193,7 @@ export default function AllNotesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#faf0e6',
+    backgroundColor: '#f5f0eb',
   },
   scrollView: {
     flex: 1,
@@ -202,13 +202,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#faf0e6',
+    backgroundColor: '#f5f0eb',
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#faf0e6',
+    backgroundColor: '#f5f0eb',
     padding: 20,
   },
   emptyText: {
@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
   },
   noteText: {
     fontSize: 26, // Intermediate between 22 and 33
-    lineHeight: 30, // Match line spacing
+    lineHeight: 26, // Match line spacing
     color: '#1a1a1a',
     fontFamily: 'LettersForLearners',
     letterSpacing: -0.3,
@@ -271,9 +271,10 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#faf0e6',
+    backgroundColor: 'rgb(220, 214, 214)',
     paddingHorizontal: 16,
     paddingVertical: 8,
+    paddingBottom: 12, // Extra padding for taller nav menu
     borderTopWidth: 1,
     borderTopColor: '#e0e0e0',
   },
