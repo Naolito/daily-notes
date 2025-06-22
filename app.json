@@ -20,7 +20,8 @@
       },
       "package": "com.dailynotes.app",
       "versionCode": 1,
-      "softwareKeyboardLayoutMode": "pan"
+      "softwareKeyboardLayoutMode": "pan",
+      "windowSoftInputMode": "adjustPan"
     },
     "web": {
       "favicon": "./assets/favicon.png"

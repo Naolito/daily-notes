@@ -9,6 +9,7 @@ import {
   Text,
   TouchableOpacity,
   Animated,
+  Keyboard,
 } from 'react-native';
 import { format } from 'date-fns';
 import { useFocusEffect } from '@react-navigation/native';
@@ -67,6 +68,8 @@ export default function NoteEditor() {
   useFocusEffect(
     React.useCallback(() => {
       loadCurrentNote();
+      // Dismiss keyboard when navigating to this screen
+      Keyboard.dismiss();
     }, [])
   );
 

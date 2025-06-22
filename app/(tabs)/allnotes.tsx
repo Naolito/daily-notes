@@ -8,6 +8,7 @@ import {
   ScrollView,
   Dimensions,
   TextInput,
+  Keyboard,
 } from 'react-native';
 import { format } from 'date-fns';
 import { useFocusEffect } from '@react-navigation/native';
@@ -187,6 +188,8 @@ export default function AllNotesScreen() {
     React.useCallback(() => {
       // Reload notes every time the screen gains focus
       loadAllNotes();
+      // Dismiss keyboard when navigating to this screen
+      Keyboard.dismiss();
       // Force re-render for new notes to ensure borders appear
       if (notes.length > 0) {
         setTimeout(() => {
