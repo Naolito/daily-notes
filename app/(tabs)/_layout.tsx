@@ -22,7 +22,7 @@ export default function TabLayout() {
         options={{
           title: 'All Notes',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="documents-outline" size={size} color={color} />
+            <Ionicons name="search-outline" size={size} color={color} />
           ),
         }}
       />

@@ -13,13 +13,33 @@ import { format } from 'date-fns';
 import { useFocusEffect } from '@react-navigation/native';
 import MoodSelector from './MoodSelector';
 import PaperTexture from './PaperTexture';
+import SimpleDashedBorder from './SimpleDashedBorder';
 import { Note, Mood } from '../types';
 import { NoteService } from '../services/noteService';
 import { StorageService } from '../services/storage';
 import { generateJuneMockData } from '../utils/generateMockData';
 import { responsiveFontSize, responsivePadding, heightPercentage } from '../utils/responsive';
 import { VerySadEmoji, SadEmoji, NeutralEmoji, HappyEmoji, VeryHappyEmoji } from '../components/FlatEmojis';
+import { Dimensions } from 'react-native';
 
+
+const { width: screenWidth } = Dimensions.get('window');
+
+const moodEmojis = {
+  1: VerySadEmoji,
+  2: SadEmoji,
+  3: NeutralEmoji,
+  4: HappyEmoji,
+  5: VeryHappyEmoji,
+};
+
+const moodColors = {
+  1: '#F44336',
+  2: '#FF9800',
+  3: '#FFC107',
+  4: '#8BC34A',
+  5: '#4CAF50',
+};
 
 export default function NoteEditor() {
   const [note, setNote] = useState<Note | null>(null);
@@ -28,6 +48,7 @@ export default function NoteEditor() {
   const [images, setImages] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [dateBoxHeight, setDateBoxHeight] = useState(0);
   const textInputRef = React.useRef<TextInput>(null);
 
   useEffect(() => {
@@ -82,14 +103,14 @@ export default function NoteEditor() {
     saveNote();
   };
 
-  const handleMoodSelect = async (mood: Mood) => {
+  const handleMoodSelect = async (mood: Mood | undefined) => {
     setSelectedMood(mood);
     const currentNote = await NoteService.getCurrentNote();
     if (currentNote) {
       currentNote.mood = mood;
       currentNote.updatedAt = new Date();
       await StorageService.saveNote(currentNote);
-    } else {
+    } else if (mood) {
       await NoteService.saveCurrentNote('', mood);
     }
   };
@@ -116,7 +137,36 @@ export default function NoteEditor() {
     >
       <PaperTexture />
       <View style={styles.contentContainer}>
-        <Text style={styles.dateHeader}>{displayDate}</Text>
+        <View 
+          style={styles.dateWrapper}
+          onLayout={(e) => {
+            const { height } = e.nativeEvent.layout;
+            if (height !== dateBoxHeight) {
+              setDateBoxHeight(height);
+            }
+          }}
+        >
+          {dateBoxHeight > 0 && (
+            <SimpleDashedBorder 
+              width={screenWidth - 32} 
+              height={dateBoxHeight} 
+              color={selectedMood ? moodColors[selectedMood] : '#333'} 
+            />
+          )}
+          <View style={styles.dateBox}>
+            <View style={styles.dateRow}>
+              <Text style={styles.dateHeader}>{displayDate}</Text>
+              {selectedMood && (
+                <TouchableOpacity 
+                  style={styles.moodInHeader}
+                  onPress={() => handleMoodSelect(undefined)}
+                >
+                  {React.createElement(moodEmojis[selectedMood], { size: 32 })}
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        </View>
         
         <TouchableOpacity 
           style={styles.touchableArea} 
@@ -163,10 +213,23 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     flex: 1,
   },
+  dateWrapper: {
+    position: 'relative',
+    marginBottom: 20,
+  },
+  dateBox: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  dateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+  },
   dateHeader: {
     fontSize: 32,
     fontWeight: '400',
-    marginBottom: 25,
     color: '#2c2c2c',
     fontFamily: Platform.select({
       ios: 'Noteworthy-Bold',
@@ -175,6 +238,9 @@ const styles = StyleSheet.create({
     }),
     textAlign: 'center',
     letterSpacing: -0.5,
+  },
+  moodInHeader: {
+    marginTop: -2,
   },
   touchableArea: {
     flex: 1,
