@@ -22,16 +22,13 @@
       },
       "package": "com.naolito.dailynotes",
       "versionCode": 1,
-      "googleServicesFile": "./android/app/google-services.json"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "expo-router",
-      "expo-font",
-      "@react-native-firebase/app",
-      "@react-native-firebase/crashlytics"
+      "expo-font"
     ],
     "extra": {
       "router": {},
