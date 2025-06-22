@@ -30,11 +30,11 @@ const moodColors = {
 
 const getMoodEmoji = (mood: number) => {
   switch (mood) {
-    case 1: return <VerySadEmoji size={24} />;
-    case 2: return <SadEmoji size={24} />;
-    case 3: return <NeutralEmoji size={24} />;
-    case 4: return <HappyEmoji size={24} />;
-    case 5: return <VeryHappyEmoji size={24} />;
+    case 1: return <VerySadEmoji size={30} />;
+    case 2: return <SadEmoji size={30} />;
+    case 3: return <NeutralEmoji size={30} />;
+    case 4: return <HappyEmoji size={30} />;
+    case 5: return <VeryHappyEmoji size={30} />;
     default: return null;
   }
 };

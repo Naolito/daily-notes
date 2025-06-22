@@ -9,7 +9,7 @@ interface SimpleDashedBorderProps {
 }
 
 export default function SimpleDashedBorder({ width, height, color = '#333' }: SimpleDashedBorderProps) {
-  const strokeWidth = 2;
+  const strokeWidth = 3;
   const radius = 8;
   const dashLength = 6;
   const dashGap = 4;
