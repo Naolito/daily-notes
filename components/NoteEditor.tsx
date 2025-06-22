@@ -51,6 +51,7 @@ export default function NoteEditor() {
   const [isLoading, setIsLoading] = useState(true);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [dateBoxHeight, setDateBoxHeight] = useState(0);
+  const [lastText, setLastText] = useState('');
   const textInputRef = React.useRef<TextInput>(null);
   
   // Animation values for mood appearance
@@ -110,7 +111,46 @@ export default function NoteEditor() {
   };
 
   const handleContentChange = (text: string) => {
-    setContent(text);
+    let processedText = text;
+    
+    // Check for "- " pattern anywhere in the text
+    const lines = processedText.split('\n');
+    let textChanged = false;
+    
+    for (let i = 0; i < lines.length; i++) {
+      // Convert "- " at the beginning of any line to bullet
+      if (lines[i].startsWith('- ')) {
+        lines[i] = '• ' + lines[i].substring(2);
+        textChanged = true;
+      }
+    }
+    
+    if (textChanged) {
+      processedText = lines.join('\n');
+    }
+    
+    // Handle enter key for bullet continuation
+    if (text.length > lastText.length && text.slice(lastText.length) === '\n') {
+      const newLines = processedText.split('\n');
+      const previousLine = newLines[newLines.length - 2];
+      
+      // If previous line was a bullet point
+      if (previousLine && previousLine.trim().startsWith('•')) {
+        // If previous line only had the bullet, remove it and the newline
+        if (previousLine.trim() === '•') {
+          newLines.splice(newLines.length - 2, 2, '');
+          processedText = newLines.join('\n');
+        }
+        // If previous line had content, add bullet to new line
+        else {
+          newLines[newLines.length - 1] = '• ';
+          processedText = newLines.join('\n');
+        }
+      }
+    }
+    
+    setLastText(processedText);
+    setContent(processedText);
     saveNote();
   };
 
@@ -235,6 +275,8 @@ export default function NoteEditor() {
             onChangeText={handleContentChange}
             textAlignVertical="top"
             scrollEnabled
+            autoCorrect={false}
+            autoCapitalize="sentences"
           />
         </TouchableOpacity>
       </View>
