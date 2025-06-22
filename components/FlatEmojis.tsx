@@ -95,13 +95,13 @@ export const VerySadEmoji = ({ size = 60, color = '#F44336' }: EmojiProps) => (
     <Circle cx="8.5" cy="9.5" r="1.5" fill={color} />
     <Circle cx="15.5" cy="9.5" r="1.5" fill={color} />
     <Path 
-      d="M8.5 17C8.5 17 9.5 14.5 12 14.5C14.5 14.5 15.5 17 15.5 17" 
+      d="M8.5 16.8C8.5 16.8 9.5 14.8 12 14.8C14.5 14.8 15.5 16.8 15.5 16.8" 
       stroke={color} 
       strokeWidth="2" 
       strokeLinecap="round"
     />
     <Path 
-      d="M9.5 6L7 7M16.5 6L14 7" 
+      d="M6.5 7L9 6M17.5 7L15 6" 
       stroke={color} 
       strokeWidth="1.5" 
       strokeLinecap="round"
