@@ -45,6 +45,12 @@ export default function SettingsScreen() {
     const newSettings = { ...notificationSettings, enabled };
     setNotificationSettings(newSettings);
     await NotificationService.saveSettings(newSettings);
+    
+    if (enabled) {
+      await NotificationService.scheduleDaily(newSettings);
+    } else {
+      await NotificationService.cancelAll();
+    }
   };
 
 

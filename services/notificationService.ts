@@ -36,7 +36,7 @@ const NOTIFICATION_MESSAGES = [
 ];
 
 const DEFAULT_SETTINGS: NotificationSettings = {
-  enabled: true,
+  enabled: false, // Start with notifications disabled by default
   time: "18:00", // 6 PM fixed
   title: NOTIFICATION_MESSAGES[0].title,
   message: NOTIFICATION_MESSAGES[0].message
