@@ -15,8 +15,11 @@ export default function CalendarScreen() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [allNotes, setAllNotes] = useState<Note[]>([]);
   const [contentHeight, setContentHeight] = useState(0);
+  const [visibleMonths, setVisibleMonths] = useState<Date[]>([]);
+  const [currentScrollIndex, setCurrentScrollIndex] = useState(12); // Start at current month
   const scrollViewRef = React.useRef<ScrollView>(null);
   const router = useRouter();
+  const isInitialMount = React.useRef(true);
   
   // Generate array of months (12 months before and after current date)
   const months = [];
@@ -27,6 +30,13 @@ export default function CalendarScreen() {
 
   useEffect(() => {
     loadAllNotes();
+    // Initially load only current month and neighbors
+    const currentMonthIndex = 12;
+    setVisibleMonths([
+      months[currentMonthIndex - 1],
+      months[currentMonthIndex],
+      months[currentMonthIndex + 1]
+    ]);
   }, []);
 
   useFocusEffect(
@@ -37,24 +47,43 @@ export default function CalendarScreen() {
   );
 
   useEffect(() => {
-    // Find the index of current month and calculate scroll position
-    const currentMonthIndex = months.findIndex(month => 
-      month.getMonth() === currentDate.getMonth() && 
-      month.getFullYear() === currentDate.getFullYear()
-    );
-    
-    if (currentMonthIndex !== -1) {
-      // Approximate height per month (adjust as needed)
+    // Only scroll to current month on initial mount
+    if (isInitialMount.current && visibleMonths.length > 0) {
+      isInitialMount.current = false;
+      const currentMonthIndex = 12;
       const monthHeight = 400;
-      // Scroll to center the current month
+      // Center the current month in the viewport
+      const viewportHeight = 600; // Approximate viewport height
       setTimeout(() => {
         scrollViewRef.current?.scrollTo({ 
-          y: currentMonthIndex * monthHeight - 100, 
+          y: currentMonthIndex * monthHeight - (viewportHeight / 2 - monthHeight / 2), 
           animated: false 
         });
-      }, 100);
+      }, 150);
     }
-  }, [months]);
+  }, [visibleMonths]);
+
+  const handleScroll = (event: any) => {
+    const scrollY = event.nativeEvent.contentOffset.y;
+    const monthHeight = 400;
+    const currentIndex = Math.floor((scrollY + 200) / monthHeight);
+    
+    if (currentIndex !== currentScrollIndex && currentIndex >= 0 && currentIndex < months.length) {
+      setCurrentScrollIndex(currentIndex);
+      
+      // Load months around current visible month
+      const newVisibleMonths = [];
+      for (let i = Math.max(0, currentIndex - 2); i <= Math.min(months.length - 1, currentIndex + 2); i++) {
+        if (!visibleMonths.some(vm => vm.getTime() === months[i].getTime())) {
+          newVisibleMonths.push(months[i]);
+        }
+      }
+      
+      if (newVisibleMonths.length > 0) {
+        setVisibleMonths([...visibleMonths, ...newVisibleMonths]);
+      }
+    }
+  };
 
   const loadAllNotes = async () => {
     try {
@@ -102,27 +131,39 @@ export default function CalendarScreen() {
         ref={scrollViewRef}
         style={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
         onContentSizeChange={(contentWidth, contentHeight) => {
           setContentHeight(contentHeight);
         }}
       >
-        {months.map((monthDate, index) => (
-          <View key={monthDate.toISOString()} style={styles.monthContainer}>
-            <Text style={[styles.monthTitle, { color: theme.primaryText }]}>{format(monthDate, 'MMMM yyyy')}</Text>
-            <CalendarGrid
-              monthData={getMonthData(monthDate)}
-              monthDate={monthDate}
-              selectedDate={
-                selectedDate.getMonth() === monthDate.getMonth() && 
-                selectedDate.getFullYear() === monthDate.getFullYear() 
-                  ? selectedDate 
-                  : null
-              }
-              onDateSelect={handleDateSelect}
-              notes={allNotes}
-            />
-          </View>
-        ))}
+        {months.map((monthDate, index) => {
+          const isVisible = visibleMonths.some(vm => vm.getTime() === monthDate.getTime());
+          
+          return (
+            <View key={monthDate.toISOString()} style={styles.monthContainer}>
+              {isVisible ? (
+                <>
+                  <Text style={[styles.monthTitle, { color: theme.primaryText }]}>{format(monthDate, 'MMMM yyyy')}</Text>
+                  <CalendarGrid
+                    monthData={getMonthData(monthDate)}
+                    monthDate={monthDate}
+                    selectedDate={
+                      selectedDate.getMonth() === monthDate.getMonth() && 
+                      selectedDate.getFullYear() === monthDate.getFullYear() 
+                        ? selectedDate 
+                        : null
+                    }
+                    onDateSelect={handleDateSelect}
+                    notes={allNotes}
+                  />
+                </>
+              ) : (
+                <View style={{ height: 400 }} />
+              )}
+            </View>
+          );
+        })}
       </ScrollView>
     </View>
   );
