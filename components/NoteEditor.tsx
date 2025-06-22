@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MoodSelector from './MoodSelector';
 import PaperTexture from './PaperTexture';
 import NotebookBackground from './NotebookBackground';
+import NotebookLines from './NotebookLines';
 import SimpleDashedBorder from './SimpleDashedBorder';
 import { Note, Mood } from '../types';
 import { NoteService } from '../services/noteService';
@@ -294,13 +295,6 @@ export default function NoteEditor() {
     >
       <View style={StyleSheet.absoluteFillObject}>
         {theme.themeType === 'notebook' && <PaperTexture />}
-        {theme.showNotebookLines && (
-          <NotebookBackground 
-            startFromTop={true} 
-            lineColor={theme.notebookLineColor}
-            opacity={theme.notebookLineOpacity}
-          />
-        )}
       </View>
       <View style={[styles.contentContainer, { paddingTop: Math.max(insets.top, 40) + 20 }]}>
         <View 
@@ -367,6 +361,13 @@ export default function NoteEditor() {
           activeOpacity={1}
           onPress={focusTextInput}
         >
+          {theme.showNotebookLines && (
+            <NotebookLines 
+              lineColor={theme.notebookLineColor}
+              opacity={theme.notebookLineOpacity}
+              startY={0}
+            />
+          )}
           <TextInput
             ref={textInputRef}
             style={[
@@ -375,8 +376,8 @@ export default function NoteEditor() {
                 color: theme.primaryText,
                 fontFamily: theme.useHandwrittenFont ? 'LettersForLearners' : undefined,
                 fontSize: theme.useHandwrittenFont ? 26 : 18,
-                lineHeight: theme.useHandwrittenFont ? responsivePadding(26) : 24,
-                paddingTop: theme.useHandwrittenFont ? (responsivePadding(26) - 26 + 8) : 8,
+                lineHeight: responsivePadding(26),
+                paddingTop: 0,
               }
             ]}
             multiline
@@ -456,7 +457,7 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
     letterSpacing: -0.3,
     padding: 0,
-    paddingTop: responsivePadding(26) - 26 + 8, // Align text to bottom of lines
+    paddingTop: 0, // Will be set dynamically
     flex: 1,
     borderWidth: 0,
     borderColor: 'transparent',

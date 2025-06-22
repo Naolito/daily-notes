@@ -9,13 +9,15 @@ interface NotebookBackgroundProps {
   startFromTop?: boolean;
   lineColor?: string;
   opacity?: number;
+  textOffset?: number;
 }
 
 export default function NotebookBackground({ 
   height, 
   startFromTop = false,
   lineColor = '#4169E1',
-  opacity = 0.075
+  opacity = 0.075,
+  textOffset = 0
 }: NotebookBackgroundProps) {
   const screenHeight = Dimensions.get('window').height;
   const actualHeight = height || screenHeight * 1.5; // Extra height for very tall devices
@@ -25,8 +27,15 @@ export default function NotebookBackground({
     <View style={[StyleSheet.absoluteFillObject, { height: actualHeight }]} pointerEvents="none">
       {/* Líneas horizontales */}
       {Array.from({ length: numberOfLines }).map((_, index) => {
-        const translateY = (Math.random() - 0.5) * 1;
+        const translateY = (Math.random() - 0.5) * 0.5; // Reduced randomness
         const scaleX = 0.998 + Math.random() * 0.004;
+        
+        // Calculate the base position for the line
+        // For text alignment, first line should be at the baseline of first line of text
+        const firstLineOffset = startFromTop ? 
+          textOffset + responsivePadding(26) - 4 : // Text baseline position
+          responsivePadding(80);
+        const linePosition = firstLineOffset + (index * LINE_HEIGHT);
         
         return (
           <View
@@ -34,12 +43,12 @@ export default function NotebookBackground({
             style={[
               styles.line,
               { 
-                top: index * LINE_HEIGHT + (startFromTop ? 0 : responsivePadding(80)) + translateY,
+                top: linePosition + translateY,
                 opacity: opacity,
                 backgroundColor: lineColor,
                 transform: [
                   { scaleX: scaleX },
-                  { rotate: `${(Math.random() - 0.5) * 0.2}deg` }
+                  { rotate: `${(Math.random() - 0.5) * 0.15}deg` }
                 ]
               }
             ]}
