@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { screenHeight, responsivePadding } from '../utils/responsive';
+import { View, StyleSheet, Dimensions } from 'react-native';
+import { responsivePadding } from '../utils/responsive';
 
 const LINE_HEIGHT = responsivePadding(26); // Tighter line spacing
 
@@ -12,15 +12,17 @@ interface NotebookBackgroundProps {
 }
 
 export default function NotebookBackground({ 
-  height = screenHeight, 
+  height, 
   startFromTop = false,
   lineColor = '#4169E1',
   opacity = 0.075
 }: NotebookBackgroundProps) {
-  const numberOfLines = Math.ceil(height / LINE_HEIGHT);
+  const screenHeight = Dimensions.get('window').height;
+  const actualHeight = height || screenHeight * 1.5; // Extra height for very tall devices
+  const numberOfLines = Math.ceil(actualHeight / LINE_HEIGHT);
   
   return (
-    <View style={[StyleSheet.absoluteFillObject, { height }]} pointerEvents="none">
+    <View style={[StyleSheet.absoluteFillObject, { height: actualHeight }]} pointerEvents="none">
       {/* Líneas horizontales */}
       {Array.from({ length: numberOfLines }).map((_, index) => {
         const translateY = (Math.random() - 0.5) * 1;
