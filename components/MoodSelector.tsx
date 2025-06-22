@@ -74,11 +74,15 @@ export default function MoodSelector({ selectedMood, onMoodSelect }: MoodSelecto
   if (!selectedMood && !isAnimating) {
     return (
       <>
-        <BlurView 
-          intensity={20} 
-          style={styles.blurOverlay} 
-          tint={theme.themeType === 'dark' ? 'dark' : 'light'} 
-        />
+        {Platform.OS === 'web' ? (
+          <View style={[styles.blurOverlay, { backgroundColor: 'rgba(0,0,0,0.3)' }]} />
+        ) : (
+          <BlurView 
+            intensity={20} 
+            style={styles.blurOverlay} 
+            tint={theme.themeType === 'dark' ? 'dark' : 'light'} 
+          />
+        )}
         <View style={styles.centeredContainer}>
           <Text style={[
             styles.title, 

@@ -129,3 +129,29 @@ To re-enable all features:
 - Expo Go cannot use native modules
 - Need development client for full functionality
 - Consider using Firebase Web SDK for Expo Go compatibility
+
+## 🐞 Current App Issues (Found in Expo Go)
+
+### 3a. Mood Selector Background Blur
+- **Issue**: Background not blurring when mood selector opens
+- **Expected**: Blurred background effect
+- **Possible cause**: BlurView not working in Expo Go or missing implementation
+
+### 3b. Status Bar Transparency Issue
+- **Issue**: App content mixing with Android notifications
+- **Expected**: Content should respect status bar space
+- **Impact**: Visual noise, poor UX
+- **Fix needed**: Proper SafeAreaView or status bar configuration
+
+### 3c. Calendar Performance
+- **Issue**: ~1 second delay when opening/closing calendar
+- **Impact**: Feels sluggish, poor user experience
+- **Possible causes**: 
+  - Heavy re-renders
+  - Unoptimized calculations
+  - Missing memoization
+
+### 3d. Font Loading Issues
+- **Issue**: Notebook font not loading for date in Today page
+- **Specific**: Custom handwritten fonts failing
+- **Impact**: Inconsistent design

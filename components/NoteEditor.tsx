@@ -330,7 +330,7 @@ export default function NoteEditor() {
                   fontFamily: theme.useHandwrittenFont 
                     ? Platform.select({
                         ios: 'Noteworthy-Bold',
-                        android: 'sans-serif',
+                        android: 'LettersForLearners',
                         default: "'Patrick Hand', cursive"
                       })
                     : undefined,

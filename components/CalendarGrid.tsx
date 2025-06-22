@@ -30,7 +30,7 @@ const darkenColor = (hex: string): string => {
   return '#' + ((1 << 24) + (Math.round(r) << 16) + (Math.round(g) << 8) + Math.round(b)).toString(16).slice(1);
 };
 
-export default function CalendarGrid({ monthData, monthDate, selectedDate, onDateSelect, notes = [] }: CalendarGridProps) {
+function CalendarGrid({ monthData, monthDate, selectedDate, onDateSelect, notes = [] }: CalendarGridProps) {
   const { theme } = useTheme();
   const [shakingDate, setShakingDate] = useState<string | null>(null);
   const shakeAnimations = useRef<{ [key: string]: Animated.Value }>({}).current;
@@ -237,3 +237,5 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
 });
+
+export default React.memo(CalendarGrid);

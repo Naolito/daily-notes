@@ -1,6 +1,7 @@
 import { Stack } from 'expo-router';
 import { useEffect } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar';
 import WebFonts from '../components/WebFonts';
 import { useCustomFonts } from '../hooks/useFonts';
 import { ThemeProvider } from '../contexts/ThemeContext';
@@ -29,6 +30,7 @@ export default function RootLayout() {
       <AuthProvider>
         <ThemeProvider>
           <WebFonts />
+          <StatusBar style="dark" backgroundColor="#ffffff" />
           <Stack>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen 

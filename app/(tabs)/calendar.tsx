@@ -17,22 +17,25 @@ export default function CalendarScreen() {
   const [allNotes, setAllNotes] = useState<Note[]>([]);
   const [contentHeight, setContentHeight] = useState(0);
   const [visibleMonths, setVisibleMonths] = useState<Date[]>([]);
-  const [currentScrollIndex, setCurrentScrollIndex] = useState(12); // Start at current month
+  const [currentScrollIndex, setCurrentScrollIndex] = useState(6); // Start at current month
   const scrollViewRef = React.useRef<ScrollView>(null);
   const router = useRouter();
   const isInitialMount = React.useRef(true);
   
-  // Generate array of months (12 months before and after current date)
-  const months: Date[] = [];
-  const currentDate = new Date();
-  for (let i = -12; i <= 12; i++) {
-    months.push(addMonths(startOfMonth(currentDate), i));
-  }
+  // Generate array of months (6 months before and after current date)
+  const months: Date[] = React.useMemo(() => {
+    const result: Date[] = [];
+    const currentDate = new Date();
+    for (let i = -6; i <= 6; i++) {
+      result.push(addMonths(startOfMonth(currentDate), i));
+    }
+    return result;
+  }, []);
 
   useEffect(() => {
     loadAllNotes();
     // Initially load only current month and neighbors
-    const currentMonthIndex = 12;
+    const currentMonthIndex = 6;
     setVisibleMonths([
       months[currentMonthIndex - 1],
       months[currentMonthIndex],
@@ -86,14 +89,14 @@ export default function CalendarScreen() {
     }
   };
 
-  const loadAllNotes = async () => {
+  const loadAllNotes = React.useCallback(async () => {
     try {
       const notes = await HybridStorageService.getAllNotes();
       setAllNotes(notes);
     } catch (error) {
       console.error('Error loading notes:', error);
     }
-  };
+  }, []);
   
   const getMonthData = (monthDate: Date): DayData[] => {
     return allNotes
