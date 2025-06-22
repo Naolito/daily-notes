@@ -12,7 +12,7 @@ import {
 import { format } from 'date-fns';
 import { useFocusEffect } from '@react-navigation/native';
 import { useLocalSearchParams } from 'expo-router';
-import { StorageService } from '../../services/storage';
+import HybridStorageService from '../../services/hybridStorage';
 import { Note } from '../../types';
 import { VerySadEmoji, SadEmoji, NeutralEmoji, HappyEmoji, VeryHappyEmoji } from '../../components/FlatEmojis';
 import NotebookBackground from '../../components/NotebookBackground';
@@ -183,7 +183,7 @@ export default function AllNotesScreen() {
 
   const loadAllNotes = async () => {
     try {
-      const allNotes = await StorageService.getAllNotes();
+      const allNotes = await HybridStorageService.getAllNotes();
       // Filter out notes without content
       const notesWithContent = allNotes.filter(note => note.content && note.content.trim().length > 0);
       const sortedNotes = notesWithContent.sort((a, b) => 

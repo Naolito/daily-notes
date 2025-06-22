@@ -31,3 +31,27 @@ npm start   # Start the development server
 npm run lint   # Run linting
 npm run typecheck   # Run TypeScript checks
 ```
+
+## Firebase Setup
+
+1. Create a `.env` file in the root directory (copy from `.env.example`)
+2. Add your Firebase configuration values from Firebase Console
+3. Firebase services used:
+   - Authentication (Silent/Anonymous)
+   - Firestore (for cloud storage)
+   - Offline persistence enabled
+
+## Authentication
+
+The app uses silent authentication - no login UI required:
+- Automatically authenticates on app launch
+- Uses anonymous authentication to sync data
+- Future: Can integrate with Google Play Services / Apple ID for seamless account linking
+- Users never see a login screen - true plug & play experience
+
+## Storage Architecture
+
+The app uses a hybrid storage approach:
+- **Local Storage**: AsyncStorage for offline access and immediate feedback
+- **Cloud Storage**: Firebase Firestore for syncing across devices
+- **Hybrid Service**: Automatically handles online/offline states and syncing

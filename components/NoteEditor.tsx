@@ -19,7 +19,7 @@ import NotebookBackground from './NotebookBackground';
 import SimpleDashedBorder from './SimpleDashedBorder';
 import { Note, Mood } from '../types';
 import { NoteService } from '../services/noteService';
-import { StorageService } from '../services/storage';
+import HybridStorageService from '../services/hybridStorage';
 import { responsiveFontSize, responsivePadding, heightPercentage, scale } from '../utils/responsive';
 import { VerySadEmoji, SadEmoji, NeutralEmoji, HappyEmoji, VeryHappyEmoji } from '../components/FlatEmojis';
 import { Dimensions } from 'react-native';
@@ -152,7 +152,7 @@ export default function NoteEditor() {
       // Always use today's date for the Today's Notes screen
       const today = new Date();
       setCurrentDate(today);
-      await StorageService.setCurrentDate(today);
+      await HybridStorageService.setCurrentDate(today);
       
       const currentNote = await NoteService.getCurrentNote();
       
@@ -266,7 +266,7 @@ export default function NoteEditor() {
     if (currentNote) {
       currentNote.mood = mood;
       currentNote.updatedAt = new Date();
-      await StorageService.saveNote(currentNote);
+      await HybridStorageService.saveNote(currentNote);
     } else if (mood) {
       await NoteService.saveCurrentNote('', mood);
     }

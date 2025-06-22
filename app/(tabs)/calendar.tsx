@@ -6,6 +6,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import CalendarGrid from '../../components/CalendarGrid';
 import NotebookBackground from '../../components/NotebookBackground';
 import { StorageService } from '../../services/storage';
+import HybridStorageService from '../../services/hybridStorage';
 import { DayData, Note } from '../../types';
 import { useTheme } from '../../contexts/ThemeContext';
 import { responsiveFontSize } from '../../utils/responsive';
@@ -87,7 +88,7 @@ export default function CalendarScreen() {
 
   const loadAllNotes = async () => {
     try {
-      const notes = await StorageService.getAllNotes();
+      const notes = await HybridStorageService.getAllNotes();
       setAllNotes(notes);
     } catch (error) {
       console.error('Error loading notes:', error);

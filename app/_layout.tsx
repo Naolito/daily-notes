@@ -4,6 +4,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import WebFonts from '../components/WebFonts';
 import { useCustomFonts } from '../hooks/useFonts';
 import { ThemeProvider } from '../contexts/ThemeContext';
+import { AuthProvider } from '../contexts/AuthContext';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -21,18 +22,20 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider>
-      <WebFonts />
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen 
-          name="search" 
-          options={{ 
-            title: 'Search Notes',
-            presentation: 'modal'
-          }} 
-        />
-      </Stack>
-    </ThemeProvider>
+    <AuthProvider>
+      <ThemeProvider>
+        <WebFonts />
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen 
+            name="search" 
+            options={{ 
+              title: 'Search Notes',
+              presentation: 'modal'
+            }} 
+          />
+        </Stack>
+      </ThemeProvider>
+    </AuthProvider>
   );
 }

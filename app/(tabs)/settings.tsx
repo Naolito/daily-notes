@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -9,9 +9,11 @@ import {
   Platform
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { StorageService } from '../../services/storage';
+import HybridStorageService from '../../services/hybridStorage';
 import { useTheme, ThemeType } from '../../contexts/ThemeContext';
 import { useRouter } from 'expo-router';
+import { auth } from '../../config/firebase';
+import SilentAuthService from '../../services/silentAuth';
 
 const skins = [
   { id: 'notebook', name: 'Classic Notebook', color: '#f5f0eb' },
@@ -23,7 +25,37 @@ const skins = [
 export default function SettingsScreen() {
   const { theme, themeType, setTheme } = useTheme();
   const [contentHeight, setContentHeight] = useState(0);
+  const [isAnonymous, setIsAnonymous] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    // Check if user is anonymous
+    const checkAuthStatus = () => {
+      if (auth.currentUser) {
+        setIsAnonymous(auth.currentUser.isAnonymous);
+      }
+    };
+
+    checkAuthStatus();
+    const unsubscribe = auth.onAuthStateChanged(checkAuthStatus);
+    return unsubscribe;
+  }, []);
+
+  const handleLinkAccount = async () => {
+    try {
+      const result = await SilentAuthService.linkAnonymousAccount();
+      if (result && !result.isAnonymous) {
+        Alert.alert(
+          'Success',
+          'Your account has been linked. Your notes will now sync across devices when you sign in with the same account.'
+        );
+        setIsAnonymous(false);
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to link account. Please try again.');
+      console.error('Error linking account:', error);
+    }
+  };
 
   const handleDeleteData = () => {
     Alert.alert(
@@ -36,7 +68,7 @@ export default function SettingsScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              await StorageService.clearAllData();
+              await HybridStorageService.clearAllData();
               Alert.alert(
                 'Success', 
                 'All data has been deleted.',
@@ -131,19 +163,41 @@ export default function SettingsScreen() {
           
           <View style={[styles.divider, { backgroundColor: theme.dividerColor }]} />
           
+          <Text style={[styles.sectionTitle, { color: theme.primaryText }]}>Account</Text>
+          
+          <View style={styles.settingsGroup}>
+            {isAnonymous && (
+              <SettingItem 
+                title={Platform.OS === 'ios' ? "Sync with Apple ID" : "Sync with Google"}
+                icon={Platform.OS === 'ios' ? "logo-apple" : "logo-google"}
+                onPress={handleLinkAccount}
+              />
+            )}
+            {!isAnonymous && (
+              <View style={styles.accountInfo}>
+                <Ionicons name="checkmark-circle" size={20} color="#4CAF50" />
+                <Text style={[styles.accountText, { color: theme.secondaryText }]}>
+                  Your notes are syncing across devices
+                </Text>
+              </View>
+            )}
+          </View>
+          
+          <View style={[styles.divider, { backgroundColor: theme.dividerColor }]} />
+          
           <Text style={[styles.sectionTitle, { color: theme.primaryText }]}>Privacy & Data</Text>
           
           <View style={styles.settingsGroup}>
             <SettingItem 
               title="Privacy Policy" 
               icon="shield-outline"
-              onPress={() => Alert.alert('Privacy Policy', 'Your data is stored locally on your device. We do not collect or transmit any personal information.')}
+              onPress={() => Alert.alert('Privacy Policy', 'Your data is synced to Firebase cloud storage. We do not access or share your personal notes.')}
             />
             
             <SettingItem 
               title="Terms of Service" 
               icon="document-text-outline"
-              onPress={() => Alert.alert('Terms of Service', 'By using this app, you agree to use it responsibly and understand that all data is stored locally.')}
+              onPress={() => Alert.alert('Terms of Service', 'By using this app, you agree to use it responsibly. Your data is securely stored in Firebase.')}
             />
             
             <SettingItem 
@@ -172,6 +226,16 @@ export default function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
+  accountInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+  },
+  accountText: {
+    fontSize: 14,
+  },
   container: {
     flex: 1,
     backgroundColor: '#f5f0eb',

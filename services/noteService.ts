@@ -1,10 +1,10 @@
 import { format } from 'date-fns';
 import { Note, Mood } from '../types';
-import { StorageService } from './storage';
+import HybridStorageService from './hybridStorage';
 
 export const NoteService = {
   async getCurrentDate(): Promise<string> {
-    const currentDate = await StorageService.getCurrentDate();
+    const currentDate = await HybridStorageService.getCurrentDate();
     return format(currentDate, 'yyyy-MM-dd');
   },
 
@@ -14,17 +14,17 @@ export const NoteService = {
 
   async getCurrentNote(): Promise<Note | null> {
     const currentDateStr = await this.getCurrentDate();
-    return StorageService.getNoteByDate(currentDateStr);
+    return HybridStorageService.getNoteByDate(currentDateStr);
   },
 
   async getTodayNote(): Promise<Note | null> {
     const today = this.getTodayDate();
-    return StorageService.getNoteByDate(today);
+    return HybridStorageService.getNoteByDate(today);
   },
 
   async saveCurrentNote(content: string, mood?: Mood, images: string[] = []): Promise<Note> {
     const currentDateStr = await this.getCurrentDate();
-    const existingNote = await StorageService.getNoteByDate(currentDateStr);
+    const existingNote = await HybridStorageService.getNoteByDate(currentDateStr);
     
     const note: Note = {
       id: existingNote?.id || `note_${Date.now()}`,
@@ -36,7 +36,7 @@ export const NoteService = {
       updatedAt: new Date(),
     };
     
-    await StorageService.saveNote(note);
+    await HybridStorageService.saveNote(note);
     return note;
   },
 
@@ -54,7 +54,7 @@ export const NoteService = {
       updatedAt: new Date(),
     };
     
-    await StorageService.saveNote(note);
+    await HybridStorageService.saveNote(note);
     return note;
   },
 
@@ -63,7 +63,7 @@ export const NoteService = {
     if (todayNote) {
       todayNote.mood = mood;
       todayNote.updatedAt = new Date();
-      await StorageService.saveNote(todayNote);
+      await HybridStorageService.saveNote(todayNote);
     } else {
       await this.saveTodayNote('', mood);
     }
@@ -75,7 +75,7 @@ export const NoteService = {
       if (!todayNote.images.includes(imageUri)) {
         todayNote.images.push(imageUri);
         todayNote.updatedAt = new Date();
-        await StorageService.saveNote(todayNote);
+        await HybridStorageService.saveNote(todayNote);
       }
     } else {
       await this.saveTodayNote('', undefined, [imageUri]);
@@ -87,7 +87,7 @@ export const NoteService = {
     if (todayNote) {
       todayNote.images = todayNote.images.filter(img => img !== imageUri);
       todayNote.updatedAt = new Date();
-      await StorageService.saveNote(todayNote);
+      await HybridStorageService.saveNote(todayNote);
     }
   },
 };

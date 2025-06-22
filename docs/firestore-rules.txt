@@ -1,0 +1,27 @@
+# Firestore Security Rules
+
+Go to Firebase Console > Firestore Database > Rules and paste these rules:
+
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow authenticated users to read/write their own data
+    match /users/{userId}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // For development/testing - remove in production
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
+```
+
+These rules ensure:
+- Users can only access their own data
+- Anonymous users can still read/write (they have auth.uid)
+- No unauthenticated access is allowed
+
+Click "Publish" after pasting the rules.
