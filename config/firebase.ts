@@ -3,7 +3,7 @@ import { getAuth, initializeAuth } from 'firebase/auth';
 import { getFirestore, initializeFirestore } from 'firebase/firestore';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import crashlytics from '@react-native-firebase/crashlytics';
+// import crashlytics from '@react-native-firebase/crashlytics';
 
 // Your Firebase configuration
 const firebaseConfig = {
@@ -26,36 +26,26 @@ export const db = initializeFirestore(app, {
   experimentalForceLongPolling: true, // For React Native
 });
 
-// Initialize Crashlytics
+// Initialize Crashlytics - Temporarily disabled
 export const initializeCrashlytics = async () => {
-  try {
-    // Enable Crashlytics collection
-    await crashlytics().setCrashlyticsCollectionEnabled(true);
-    
-    // Log that Crashlytics is initialized
-    console.log('Firebase Crashlytics initialized');
-  } catch (error) {
-    console.error('Error initializing Crashlytics:', error);
-  }
+  console.log('Crashlytics temporarily disabled');
 };
 
-// Crashlytics utility functions
+// Crashlytics utility functions - Temporarily disabled
 export const logCrashlyticsError = (error: Error, errorInfo?: any) => {
-  crashlytics().recordError(error, errorInfo);
+  console.error('Crashlytics error logging disabled:', error, errorInfo);
 };
 
 export const setCrashlyticsUserId = (userId: string) => {
-  crashlytics().setUserId(userId);
+  console.log('Crashlytics user ID disabled:', userId);
 };
 
 export const setCrashlyticsAttributes = (attributes: { [key: string]: string }) => {
-  Object.entries(attributes).forEach(([key, value]) => {
-    crashlytics().setAttribute(key, value);
-  });
+  console.log('Crashlytics attributes disabled:', attributes);
 };
 
 export const logCrashlyticsMessage = (message: string) => {
-  crashlytics().log(message);
+  console.log('Crashlytics message disabled:', message);
 };
 
 export default app;

@@ -5,7 +5,6 @@ import WebFonts from '../components/WebFonts';
 import { useCustomFonts } from '../hooks/useFonts';
 import { ThemeProvider } from '../contexts/ThemeContext';
 import { AuthProvider } from '../contexts/AuthContext';
-import { initializeCrashlytics } from '../config/firebase';
 import { Platform } from 'react-native';
 import ErrorBoundary from '../components/ErrorBoundary';
 
@@ -14,12 +13,6 @@ SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
   const fontsLoaded = useCustomFonts();
 
-  useEffect(() => {
-    // Initialize Crashlytics for native platforms
-    if (Platform.OS !== 'web') {
-      initializeCrashlytics();
-    }
-  }, []);
 
   useEffect(() => {
     if (fontsLoaded) {
