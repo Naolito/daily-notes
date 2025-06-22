@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { screenHeight, responsivePadding } from '../utils/responsive';
 
-const LINE_HEIGHT = responsivePadding(28);
+const LINE_HEIGHT = responsivePadding(30); // Standard line spacing
 
 interface NotebookBackgroundProps {
   height?: number;
@@ -16,7 +16,7 @@ export default function NotebookBackground({ height = screenHeight, startFromTop
     <View style={[StyleSheet.absoluteFillObject, { height }]} pointerEvents="none">
       {/* Líneas horizontales */}
       {Array.from({ length: numberOfLines }).map((_, index) => {
-        const opacity = 0.04 + Math.random() * 0.02;
+        const opacity = 0.075; // 7.5% opacity (50% of previous)
         const translateY = (Math.random() - 0.5) * 1;
         const scaleX = 0.998 + Math.random() * 0.004;
         

@@ -14,6 +14,7 @@ import { format } from 'date-fns';
 import { useFocusEffect } from '@react-navigation/native';
 import MoodSelector from './MoodSelector';
 import PaperTexture from './PaperTexture';
+import NotebookBackground from './NotebookBackground';
 import SimpleDashedBorder from './SimpleDashedBorder';
 import { Note, Mood } from '../types';
 import { NoteService } from '../services/noteService';
@@ -178,7 +179,10 @@ export default function NoteEditor() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <PaperTexture />
+      <View style={StyleSheet.absoluteFillObject}>
+        <PaperTexture />
+        <NotebookBackground startFromTop={true} />
+      </View>
       <View style={styles.contentContainer}>
         <View 
           style={styles.dateWrapper}
@@ -296,8 +300,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   textInput: {
-    fontSize: 22,
-    lineHeight: 28,
+    fontSize: 26, // Intermediate between 22 and 33
+    lineHeight: 30, // Match line spacing
     color: '#1a1a1a',
     backgroundColor: 'transparent',
     fontFamily: 'LettersForLearners',

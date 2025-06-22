@@ -96,6 +96,7 @@ export default function AllNotesScreen() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchText, setSearchText] = useState('');
+  const [contentHeight, setContentHeight] = useState(0);
   const scrollViewRef = useRef<ScrollView>(null);
 
   useEffect(() => {
@@ -154,10 +155,18 @@ export default function AllNotesScreen() {
         showsVerticalScrollIndicator={false}
         style={styles.scrollView}
       >
-        <View style={StyleSheet.absoluteFillObject}>
-          <NotebookBackground startFromTop={true} />
-        </View>
-        <View style={styles.notesContainer}>
+        <View 
+          style={styles.notesContainer}
+          onLayout={(e) => {
+            const { height } = e.nativeEvent.layout;
+            setContentHeight(height + 100); // Add extra space
+          }}
+        >
+          {contentHeight > 0 && (
+            <View style={[StyleSheet.absoluteFillObject, { height: contentHeight }]}>
+              <NotebookBackground height={contentHeight} startFromTop={true} />
+            </View>
+          )}
           {notes
             .filter((item) => {
               if (!searchText.trim()) return true;
@@ -251,8 +260,8 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   noteText: {
-    fontSize: 22,
-    lineHeight: 28,
+    fontSize: 26, // Intermediate between 22 and 33
+    lineHeight: 30, // Match line spacing
     color: '#1a1a1a',
     fontFamily: 'LettersForLearners',
     letterSpacing: -0.3,
