@@ -22,7 +22,7 @@ export default function CalendarScreen() {
   const isInitialMount = React.useRef(true);
   
   // Generate array of months (12 months before and after current date)
-  const months = [];
+  const months: Date[] = [];
   const currentDate = new Date();
   for (let i = -12; i <= 12; i++) {
     months.push(addMonths(startOfMonth(currentDate), i));

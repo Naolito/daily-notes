@@ -80,7 +80,7 @@ export default function MoodSelector({ selectedMood, onMoodSelect }: MoodSelecto
             ios: 'Noteworthy-Light',
             android: 'sans-serif',
             default: "'Permanent Marker', cursive"
-          }) : theme.primaryFont,
+          }) : undefined,
           transform: theme.useHandwrittenFont ? [{ rotate: '-1.5deg' }] : [],
           fontWeight: theme.useHandwrittenFont ? '300' : '400',
         }

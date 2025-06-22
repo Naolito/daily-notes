@@ -1,9 +1,7 @@
 import { Tabs } from 'expo-router';
 import CustomTabBar from '../../components/CustomTabBar';
-import { useSystemBars } from '../../hooks/useSystemBars';
 
 export default function TabLayout() {
-  useSystemBars();
   return (
     <Tabs 
       tabBar={(props) => <CustomTabBar {...props} />}

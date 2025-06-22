@@ -9,10 +9,10 @@ import {
   Text,
   TouchableOpacity,
   Animated,
-  Keyboard,
 } from 'react-native';
 import { format } from 'date-fns';
 import { useFocusEffect } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MoodSelector from './MoodSelector';
 import PaperTexture from './PaperTexture';
 import NotebookBackground from './NotebookBackground';
@@ -47,6 +47,7 @@ const moodColors = {
 
 export default function NoteEditor() {
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
   const [note, setNote] = useState<Note | null>(null);
   const [content, setContent] = useState('');
   const [selectedMood, setSelectedMood] = useState<Mood | undefined>();
@@ -68,8 +69,6 @@ export default function NoteEditor() {
   useFocusEffect(
     React.useCallback(() => {
       loadCurrentNote();
-      // Dismiss keyboard when navigating to this screen
-      Keyboard.dismiss();
     }, [])
   );
 
@@ -242,7 +241,7 @@ export default function NoteEditor() {
           />
         )}
       </View>
-      <View style={styles.contentContainer}>
+      <View style={[styles.contentContainer, { paddingTop: Math.max(insets.top, 40) + 20 }]}>
         <View 
           style={styles.dateWrapper}
           onLayout={(e) => {
@@ -280,7 +279,7 @@ export default function NoteEditor() {
                         default: "'Patrick Hand', cursive"
                       })
                     : undefined,
-                  fontSize: responsiveFontSize(theme.useHandwrittenFont ? 32 : 24),
+                  fontSize: theme.useHandwrittenFont ? 32 : 24,
                 }
               ]}>{displayDate}</Text>
               {selectedMood && (
@@ -314,8 +313,8 @@ export default function NoteEditor() {
               { 
                 color: theme.primaryText,
                 fontFamily: theme.useHandwrittenFont ? 'LettersForLearners' : undefined,
-                fontSize: responsiveFontSize(theme.useHandwrittenFont ? 26 : 18),
-                lineHeight: theme.useHandwrittenFont ? responsivePadding(26) : responsiveFontSize(24),
+                fontSize: theme.useHandwrittenFont ? 26 : 18,
+                lineHeight: theme.useHandwrittenFont ? responsivePadding(26) : 24,
                 paddingTop: theme.useHandwrittenFont ? (responsivePadding(26) - 26 + 8) : 8,
               }
             ]}
@@ -357,11 +356,12 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     paddingHorizontal: 32, // More side margins
-    paddingTop: 16,
+    paddingTop: 16, // Base padding, safe area insets added dynamically
     flex: 1,
   },
   dateWrapper: {
     position: 'relative',
+    marginTop: 0,
     marginBottom: 20,
   },
   dateBox: {
@@ -399,6 +399,5 @@ const styles = StyleSheet.create({
     flex: 1,
     borderWidth: 0,
     borderColor: 'transparent',
-    outlineStyle: 'none',
   },
 });

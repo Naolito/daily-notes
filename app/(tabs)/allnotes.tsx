@@ -8,7 +8,6 @@ import {
   ScrollView,
   Dimensions,
   TextInput,
-  Keyboard,
 } from 'react-native';
 import { format } from 'date-fns';
 import { useFocusEffect } from '@react-navigation/native';
@@ -18,7 +17,7 @@ import { Note } from '../../types';
 import { VerySadEmoji, SadEmoji, NeutralEmoji, HappyEmoji, VeryHappyEmoji } from '../../components/FlatEmojis';
 import NotebookBackground from '../../components/NotebookBackground';
 import SimpleDashedBorder from '../../components/SimpleDashedBorder';
-import { responsivePadding, responsiveFontSize } from '../../utils/responsive';
+import { responsivePadding } from '../../utils/responsive';
 import { useTheme } from '../../contexts/ThemeContext';
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -43,15 +42,14 @@ const getMoodEmoji = (mood: number) => {
 };
 
 const HighlightedText = ({ text, searchText, textColor, fontFamily, fontSize }: { text: string; searchText: string; textColor: string; fontFamily?: string; fontSize: number }) => {
-  const responsiveSize = responsiveFontSize(fontSize);
   if (!searchText.trim()) {
-    return <Text style={[styles.noteText, { color: textColor, fontFamily, fontSize: responsiveSize, lineHeight: responsiveSize + 4 }]}>{text}</Text>;
+    return <Text style={[styles.noteText, { color: textColor, fontFamily, fontSize, lineHeight: fontSize + 4 }]}>{text}</Text>;
   }
 
   const parts = text.split(new RegExp(`(${searchText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
   
   return (
-    <Text style={[styles.noteText, { color: textColor, fontFamily, fontSize: responsiveSize, lineHeight: responsiveSize + 4 }]}>
+    <Text style={[styles.noteText, { color: textColor, fontFamily, fontSize, lineHeight: fontSize + 4 }]}>
       {parts.map((part, index) => {
         if (part.toLowerCase() === searchText.toLowerCase()) {
           return (
@@ -68,29 +66,20 @@ const HighlightedText = ({ text, searchText, textColor, fontFamily, fontSize }: 
 
 const NoteItem = ({ item, searchText, theme }: { item: Note; searchText: string; theme: any }) => {
   const [itemHeight, setItemHeight] = useState(0);
-  const [isLayoutReady, setIsLayoutReady] = useState(false);
   const noteWidth = screenWidth - 32;
   const borderColor = item.mood ? moodColors[item.mood] : theme.borderColor;
-  
-  // Force layout measurement on mount
-  useEffect(() => {
-    // Small delay to ensure component is rendered
-    const timer = setTimeout(() => {
-      setIsLayoutReady(false);
-    }, 10);
-    return () => clearTimeout(timer);
-  }, [item.id]);
   
   return (
     <View 
       style={styles.noteWrapper}
       onLayout={(e) => {
         const { height } = e.nativeEvent.layout;
-        setItemHeight(height);
-        setIsLayoutReady(true);
+        if (height !== itemHeight) {
+          setItemHeight(height);
+        }
       }}
     >
-      {isLayoutReady && itemHeight > 0 && theme.useDottedBorders && (
+      {itemHeight > 0 && theme.useDottedBorders && (
         <SimpleDashedBorder width={noteWidth} height={itemHeight} color={borderColor} />
       )}
       <TouchableOpacity style={[
@@ -137,8 +126,8 @@ const NoteItem = ({ item, searchText, theme }: { item: Note; searchText: string;
               color: theme.primaryText,
               opacity: 0.5,
               fontFamily: theme.useHandwrittenFont ? 'LettersForLearners' : undefined,
-              fontSize: responsiveFontSize(theme.useHandwrittenFont ? 26 : 16),
-              lineHeight: responsiveFontSize(theme.useHandwrittenFont ? 26 : 16) + 4
+              fontSize: theme.useHandwrittenFont ? 26 : 16,
+              lineHeight: (theme.useHandwrittenFont ? 26 : 16) + 4
             }
           ]}>
             Type here...
@@ -188,14 +177,6 @@ export default function AllNotesScreen() {
     React.useCallback(() => {
       // Reload notes every time the screen gains focus
       loadAllNotes();
-      // Dismiss keyboard when navigating to this screen
-      Keyboard.dismiss();
-      // Force re-render for new notes to ensure borders appear
-      if (notes.length > 0) {
-        setTimeout(() => {
-          setNotes([...notes]);
-        }, 100);
-      }
     }, [params.scrollToDate])
   );
 
@@ -328,8 +309,7 @@ export default function AllNotesScreen() {
                 shadowOpacity: 0.08,
                 shadowRadius: 8,
                 elevation: 3,
-                borderWidth: 1,
-                borderColor: '#e0e0e0',
+                borderWidth: 0,
               })
             }
           ]}

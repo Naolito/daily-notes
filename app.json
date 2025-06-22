@@ -1,14 +1,16 @@
 {
   "expo": {
-    "name": "Daily Notes",
+    "name": "daily-notes",
     "slug": "daily-notes",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.dailynotes.app"
@@ -16,27 +18,17 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#f5f0eb"
+        "backgroundColor": "#ffffff"
       },
       "package": "com.dailynotes.app",
-      "versionCode": 1,
-      "softwareKeyboardLayoutMode": "pan",
-      "windowSoftInputMode": "adjustPan"
+      "versionCode": 1
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "expo-router",
-      "expo-font",
-      [
-        "expo-notifications",
-        {
-          "icon": "./assets/icon.png",
-          "color": "#4CAF50",
-          "sounds": []
-        }
-      ]
+      "expo-font"
     ],
     "extra": {
       "router": {},

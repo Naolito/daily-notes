@@ -1,18 +1,18 @@
 import { Stack } from 'expo-router';
 import { useEffect } from 'react';
-import { StatusBar } from 'expo-status-bar';
+import * as SplashScreen from 'expo-splash-screen';
 import WebFonts from '../components/WebFonts';
 import { useCustomFonts } from '../hooks/useFonts';
-import { ThemeProvider, useTheme } from '../contexts/ThemeContext';
-import { NotificationService } from '../services/notificationService';
+import { ThemeProvider } from '../contexts/ThemeContext';
+
+SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const fontsLoaded = useCustomFonts();
 
   useEffect(() => {
     if (fontsLoaded) {
-      // Initialize notifications
-      NotificationService.initialize();
+      SplashScreen.hideAsync();
     }
   }, [fontsLoaded]);
 
@@ -23,7 +23,6 @@ export default function RootLayout() {
   return (
     <ThemeProvider>
       <WebFonts />
-      <ThemedStatusBar />
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen 
@@ -35,15 +34,5 @@ export default function RootLayout() {
         />
       </Stack>
     </ThemeProvider>
-  );
-}
-
-function ThemedStatusBar() {
-  const { theme } = useTheme();
-  return (
-    <StatusBar 
-      style={theme.themeType === 'dark' ? 'light' : 'dark'}
-      backgroundColor={theme.backgroundColor}
-    />
   );
 }

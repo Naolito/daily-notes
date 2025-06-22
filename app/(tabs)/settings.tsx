@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   View, 
   Text, 
@@ -6,14 +6,11 @@ import {
   ScrollView, 
   TouchableOpacity,
   Alert,
-  Platform,
-  Switch
+  Platform
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { StorageService } from '../../services/storage';
-import { responsiveFontSize } from '../../utils/responsive';
 import { useTheme, ThemeType } from '../../contexts/ThemeContext';
-import { NotificationService, NotificationSettings } from '../../services/notificationService';
 
 const skins = [
   { id: 'notebook', name: 'Classic Notebook', color: '#f5f0eb' },
@@ -25,34 +22,6 @@ const skins = [
 export default function SettingsScreen() {
   const { theme, themeType, setTheme } = useTheme();
   const [contentHeight, setContentHeight] = useState(0);
-  const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({
-    enabled: true,
-    time: "20:00",
-    title: "Daily Notes 📝",
-    message: "How was your day? Take a moment to reflect and write it down."
-  });
-
-  useEffect(() => {
-    loadNotificationSettings();
-  }, []);
-
-  const loadNotificationSettings = async () => {
-    const settings = await NotificationService.getSettings();
-    setNotificationSettings(settings);
-  };
-
-  const handleNotificationToggle = async (enabled: boolean) => {
-    const newSettings = { ...notificationSettings, enabled };
-    setNotificationSettings(newSettings);
-    await NotificationService.saveSettings(newSettings);
-    
-    if (enabled) {
-      await NotificationService.scheduleDaily(newSettings);
-    } else {
-      await NotificationService.cancelAll();
-    }
-  };
-
 
   const handleDeleteData = () => {
     Alert.alert(
@@ -143,49 +112,6 @@ export default function SettingsScreen() {
           
           <View style={[styles.divider, { backgroundColor: theme.dividerColor }]} />
           
-          <Text style={[styles.sectionTitle, { color: theme.primaryText }]}>Notifications</Text>
-          
-          <View style={styles.settingsGroup}>
-            <TouchableOpacity 
-              style={[
-                styles.settingItem, 
-                { backgroundColor: theme.settingsButtonBackground },
-                theme.themeType === 'paper' && {
-                  shadowColor: '#000',
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.06,
-                  shadowRadius: 6,
-                  elevation: 2,
-                  borderWidth: 0,
-                }
-              ]}
-              onPress={() => handleNotificationToggle(!notificationSettings.enabled)}
-            >
-              <View style={[styles.settingContent, { flex: 1 }]}>
-                <Ionicons name="notifications-outline" size={24} color={theme.secondaryText} />
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.settingText, { color: theme.primaryText }]}>Daily Reminders</Text>
-                  <Text style={[styles.settingSubtext, { color: theme.secondaryText }]}>
-                    Get reminded at 6 PM daily
-                  </Text>
-                </View>
-              </View>
-              <View style={[
-                styles.checkbox,
-                { 
-                  borderColor: notificationSettings.enabled ? '#2196F3' : theme.borderColor,
-                  backgroundColor: notificationSettings.enabled ? '#2196F3' : 'transparent' 
-                }
-              ]}>
-                {notificationSettings.enabled && (
-                  <Ionicons name="checkmark" size={16} color="#ffffff" />
-                )}
-              </View>
-            </TouchableOpacity>
-          </View>
-          
-          <View style={[styles.divider, { backgroundColor: theme.dividerColor }]} />
-          
           <Text style={[styles.sectionTitle, { color: theme.primaryText }]}>Privacy & Data</Text>
           
           <View style={styles.settingsGroup}>
@@ -239,7 +165,7 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
   sectionTitle: {
-    fontSize: responsiveFontSize(24),
+    fontSize: 24,
     fontWeight: '600',
     color: '#2c2c2c',
     marginBottom: 20,
@@ -270,7 +196,7 @@ const styles = StyleSheet.create({
   },
   skinName: {
     textAlign: 'center',
-    fontSize: responsiveFontSize(16),
+    fontSize: 16,
     color: '#666',
     marginBottom: 20,
   },
@@ -290,7 +216,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 1,
     borderRadius: 8,
-    marginBottom: 8,
   },
   settingContent: {
     flexDirection: 'row',
@@ -298,20 +223,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   settingText: {
-    fontSize: responsiveFontSize(16),
+    fontSize: 16,
     color: '#333',
-  },
-  settingSubtext: {
-    fontSize: responsiveFontSize(14),
-    color: '#666',
-    marginTop: 2,
-  },
-  checkbox: {
-    width: 24,
-    height: 24,
-    borderRadius: 6,
-    borderWidth: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 });
