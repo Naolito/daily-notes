@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Note } from '../types';
 
 const NOTES_STORAGE_KEY = '@daily_notes';
+const CURRENT_DATE_KEY = '@current_date';
 
 export const StorageService = {
   async saveNote(note: Note): Promise<void> {
@@ -68,6 +69,24 @@ export const StorageService = {
       await AsyncStorage.setItem(NOTES_STORAGE_KEY, JSON.stringify(filteredNotes));
     } catch (error) {
       console.error('Error deleting old notes:', error);
+    }
+  },
+
+  async setCurrentDate(date: Date): Promise<void> {
+    try {
+      await AsyncStorage.setItem(CURRENT_DATE_KEY, date.toISOString());
+    } catch (error) {
+      console.error('Error setting current date:', error);
+    }
+  },
+
+  async getCurrentDate(): Promise<Date> {
+    try {
+      const dateStr = await AsyncStorage.getItem(CURRENT_DATE_KEY);
+      return dateStr ? new Date(dateStr) : new Date();
+    } catch (error) {
+      console.error('Error getting current date:', error);
+      return new Date();
     }
   }
 };

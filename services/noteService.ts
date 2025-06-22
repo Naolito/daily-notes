@@ -3,13 +3,41 @@ import { Note, Mood } from '../types';
 import { StorageService } from './storage';
 
 export const NoteService = {
+  async getCurrentDate(): Promise<string> {
+    const currentDate = await StorageService.getCurrentDate();
+    return format(currentDate, 'yyyy-MM-dd');
+  },
+
   getTodayDate(): string {
     return format(new Date(), 'yyyy-MM-dd');
+  },
+
+  async getCurrentNote(): Promise<Note | null> {
+    const currentDateStr = await this.getCurrentDate();
+    return StorageService.getNoteByDate(currentDateStr);
   },
 
   async getTodayNote(): Promise<Note | null> {
     const today = this.getTodayDate();
     return StorageService.getNoteByDate(today);
+  },
+
+  async saveCurrentNote(content: string, mood?: Mood, images: string[] = []): Promise<Note> {
+    const currentDateStr = await this.getCurrentDate();
+    const existingNote = await StorageService.getNoteByDate(currentDateStr);
+    
+    const note: Note = {
+      id: existingNote?.id || `note_${Date.now()}`,
+      date: currentDateStr,
+      content,
+      mood,
+      images,
+      createdAt: existingNote?.createdAt || new Date(),
+      updatedAt: new Date(),
+    };
+    
+    await StorageService.saveNote(note);
+    return note;
   },
 
   async saveTodayNote(content: string, mood?: Mood, images: string[] = []): Promise<Note> {

@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { Mood } from '../types';
 import { VerySadEmoji, SadEmoji, NeutralEmoji, HappyEmoji, VeryHappyEmoji } from './FlatEmojis';
+import { responsiveFontSize, responsivePadding, widthScale } from '../utils/responsive';
 
 interface MoodSelectorProps {
   selectedMood?: Mood;
@@ -32,7 +33,7 @@ export default function MoodSelector({ selectedMood, onMoodSelect }: MoodSelecto
               ]}
               onPress={() => onMoodSelect(mood.value as Mood)}
             >
-              <EmojiComponent size={selectedMood === mood.value ? 70 : 60} />
+              <EmojiComponent size={selectedMood === mood.value ? Math.round(70 * widthScale) : Math.round(60 * widthScale)} />
             </TouchableOpacity>
           );
         })}
@@ -47,11 +48,11 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    paddingHorizontal: 20,
-    paddingBottom: 30,
+    paddingHorizontal: responsivePadding(20),
+    paddingBottom: responsivePadding(30),
   },
   title: {
-    fontSize: 24,
+    fontSize: responsiveFontSize(22), // Reduced from 24 for better scaling
     textAlign: 'center',
     marginBottom: 0,
     color: '#2c2c2c',
@@ -68,10 +69,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    paddingHorizontal: 10,
+    paddingHorizontal: responsivePadding(10),
   },
   moodButton: {
-    padding: 5,
+    padding: responsivePadding(5),
     transform: [{ scale: 1 }],
   },
   selectedMood: {

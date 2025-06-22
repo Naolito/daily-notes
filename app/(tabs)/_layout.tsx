@@ -11,9 +11,18 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Today's Note",
+          title: "Today's Notes",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="create-outline" size={size} color={color} />
+            <Ionicons name="today-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="allnotes"
+        options={{
+          title: 'All Notes',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="documents-outline" size={size} color={color} />
           ),
         }}
       />

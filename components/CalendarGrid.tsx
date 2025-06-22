@@ -5,21 +5,22 @@ import { DayData } from '../types';
 
 interface CalendarGridProps {
   monthData: DayData[];
-  selectedDate: Date;
+  monthDate: Date;
+  selectedDate: Date | null;
   onDateSelect: (date: Date) => void;
 }
 
 const moodColors = {
-  1: '#FF6B6B',
-  2: '#FFA06B',
-  3: '#FFD93D',
-  4: '#6BCF7F',
-  5: '#4ECDC4',
+  1: '#F44336',
+  2: '#FF9800',
+  3: '#FFC107',
+  4: '#8BC34A',
+  5: '#4CAF50',
 };
 
-export default function CalendarGrid({ monthData, selectedDate, onDateSelect }: CalendarGridProps) {
-  const monthStart = startOfMonth(selectedDate);
-  const monthEnd = endOfMonth(selectedDate);
+export default function CalendarGrid({ monthData, monthDate, selectedDate, onDateSelect }: CalendarGridProps) {
+  const monthStart = startOfMonth(monthDate);
+  const monthEnd = endOfMonth(monthDate);
   const startDate = startOfWeek(monthStart);
   const endDate = endOfWeek(monthEnd);
   
@@ -33,8 +34,6 @@ export default function CalendarGrid({ monthData, selectedDate, onDateSelect }: 
 
   return (
     <View style={styles.container}>
-      <Text style={styles.monthTitle}>{format(selectedDate, 'MMMM yyyy')}</Text>
-      
       <View style={styles.weekDaysContainer}>
         {weekDays.map((day) => (
           <Text key={day} style={styles.weekDay}>{day}</Text>
@@ -44,9 +43,11 @@ export default function CalendarGrid({ monthData, selectedDate, onDateSelect }: 
       <View style={styles.daysContainer}>
         {days.map((day) => {
           const dayData = getDayData(day);
-          const isCurrentMonth = day.getMonth() === selectedDate.getMonth();
-          const isSelected = isSameDay(day, selectedDate);
-          const isToday = isSameDay(day, new Date());
+          const isCurrentMonth = day.getMonth() === monthStart.getMonth();
+          const isSelected = selectedDate && format(day, 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd');
+          const isToday = format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+          const hasNote = dayData?.hasNote;
+          const moodColor = dayData?.mood ? moodColors[dayData.mood] : undefined;
           
           return (
             <TouchableOpacity
@@ -54,26 +55,25 @@ export default function CalendarGrid({ monthData, selectedDate, onDateSelect }: 
               style={[
                 styles.day,
                 !isCurrentMonth && styles.otherMonth,
-                isSelected && styles.selectedDay,
-                isToday && styles.today,
               ]}
               onPress={() => onDateSelect(day)}
             >
-              <Text style={[
-                styles.dayText,
-                !isCurrentMonth && styles.otherMonthText,
-                isSelected && styles.selectedDayText,
+              <View style={[
+                styles.dayBox,
+                hasNote && moodColor && { backgroundColor: moodColor },
+                !hasNote && styles.emptyDayBox,
+                isSelected && styles.selectedDayBox,
+                isToday && styles.todayBox,
               ]}>
-                {format(day, 'd')}
-              </Text>
-              {dayData?.hasNote && (
-                <View 
-                  style={[
-                    styles.indicator,
-                    dayData.mood && { backgroundColor: moodColors[dayData.mood] }
-                  ]} 
-                />
-              )}
+                <Text style={[
+                  styles.dayText,
+                  !isCurrentMonth && styles.otherMonthText,
+                  hasNote && styles.dayTextWithMood,
+                  isSelected && styles.selectedDayText,
+                ]}>
+                  {format(day, 'd')}
+                </Text>
+              </View>
             </TouchableOpacity>
           );
         })}
@@ -85,13 +85,6 @@ export default function CalendarGrid({ monthData, selectedDate, onDateSelect }: 
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-  },
-  monthTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 16,
-    color: '#333',
   },
   weekDaysContainer: {
     flexDirection: 'row',
@@ -111,13 +104,33 @@ const styles = StyleSheet.create({
   day: {
     width: '14.28%',
     aspectRatio: 1,
+    padding: 4,
+  },
+  dayBox: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 2,
+    borderRadius: 8,
+    backgroundColor: '#f0f0f0',
+  },
+  emptyDayBox: {
+    backgroundColor: '#f0f0f0',
+  },
+  selectedDayBox: {
+    borderWidth: 2,
+    borderColor: '#007AFF',
+  },
+  todayBox: {
+    borderWidth: 2,
+    borderColor: '#333',
   },
   dayText: {
     fontSize: 16,
     color: '#333',
+  },
+  dayTextWithMood: {
+    color: '#fff',
+    fontWeight: 'bold',
   },
   otherMonth: {
     opacity: 0.3,
@@ -125,25 +138,7 @@ const styles = StyleSheet.create({
   otherMonthText: {
     color: '#999',
   },
-  selectedDay: {
-    backgroundColor: '#007AFF20',
-    borderRadius: 20,
-  },
   selectedDayText: {
-    color: '#007AFF',
     fontWeight: 'bold',
-  },
-  today: {
-    borderWidth: 2,
-    borderColor: '#007AFF',
-    borderRadius: 20,
-  },
-  indicator: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#007AFF',
-    position: 'absolute',
-    bottom: 4,
   },
 });
