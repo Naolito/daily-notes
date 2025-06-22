@@ -277,7 +277,7 @@ export default function NoteEditor() {
                         default: "'Patrick Hand', cursive"
                       })
                     : undefined,
-                  fontSize: theme.useHandwrittenFont ? 32 : 24,
+                  fontSize: responsiveFontSize(theme.useHandwrittenFont ? 32 : 24),
                 }
               ]}>{displayDate}</Text>
               {selectedMood && (
@@ -311,8 +311,8 @@ export default function NoteEditor() {
               { 
                 color: theme.primaryText,
                 fontFamily: theme.useHandwrittenFont ? 'LettersForLearners' : undefined,
-                fontSize: theme.useHandwrittenFont ? 26 : 18,
-                lineHeight: theme.useHandwrittenFont ? responsivePadding(26) : 24,
+                fontSize: responsiveFontSize(theme.useHandwrittenFont ? 26 : 18),
+                lineHeight: theme.useHandwrittenFont ? responsivePadding(26) : responsiveFontSize(24),
                 paddingTop: theme.useHandwrittenFont ? (responsivePadding(26) - 26 + 8) : 8,
               }
             ]}

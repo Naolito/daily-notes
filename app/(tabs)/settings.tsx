@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -6,11 +6,14 @@ import {
   ScrollView, 
   TouchableOpacity,
   Alert,
-  Platform
+  Platform,
+  Switch
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { StorageService } from '../../services/storage';
+import { responsiveFontSize } from '../../utils/responsive';
 import { useTheme, ThemeType } from '../../contexts/ThemeContext';
+import { NotificationService, NotificationSettings } from '../../services/notificationService';
 
 const skins = [
   { id: 'notebook', name: 'Classic Notebook', color: '#f5f0eb' },
@@ -22,6 +25,28 @@ const skins = [
 export default function SettingsScreen() {
   const { theme, themeType, setTheme } = useTheme();
   const [contentHeight, setContentHeight] = useState(0);
+  const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({
+    enabled: true,
+    time: "20:00",
+    title: "Daily Notes 📝",
+    message: "How was your day? Take a moment to reflect and write it down."
+  });
+
+  useEffect(() => {
+    loadNotificationSettings();
+  }, []);
+
+  const loadNotificationSettings = async () => {
+    const settings = await NotificationService.getSettings();
+    setNotificationSettings(settings);
+  };
+
+  const handleNotificationToggle = async (enabled: boolean) => {
+    const newSettings = { ...notificationSettings, enabled };
+    setNotificationSettings(newSettings);
+    await NotificationService.saveSettings(newSettings);
+  };
+
 
   const handleDeleteData = () => {
     Alert.alert(
@@ -112,6 +137,41 @@ export default function SettingsScreen() {
           
           <View style={[styles.divider, { backgroundColor: theme.dividerColor }]} />
           
+          <Text style={[styles.sectionTitle, { color: theme.primaryText }]}>Notifications</Text>
+          
+          <View style={styles.settingsGroup}>
+            <View style={[
+              styles.settingItem, 
+              { backgroundColor: theme.settingsButtonBackground },
+              theme.themeType === 'paper' && {
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.06,
+                shadowRadius: 6,
+                elevation: 2,
+                borderWidth: 0,
+              }
+            ]}>
+              <View style={styles.settingContent}>
+                <Ionicons name="notifications-outline" size={24} color={theme.secondaryText} />
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.settingText, { color: theme.primaryText }]}>Daily Reminders</Text>
+                  <Text style={[styles.settingSubtext, { color: theme.secondaryText }]}>
+                    Get reminded at 6 PM daily
+                  </Text>
+                </View>
+              </View>
+              <Switch
+                value={notificationSettings.enabled}
+                onValueChange={handleNotificationToggle}
+                trackColor={{ false: theme.borderColor, true: '#4CAF50' }}
+                thumbColor={notificationSettings.enabled ? '#ffffff' : '#f4f3f4'}
+              />
+            </View>
+          </View>
+          
+          <View style={[styles.divider, { backgroundColor: theme.dividerColor }]} />
+          
           <Text style={[styles.sectionTitle, { color: theme.primaryText }]}>Privacy & Data</Text>
           
           <View style={styles.settingsGroup}>
@@ -165,7 +225,7 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
   sectionTitle: {
-    fontSize: 24,
+    fontSize: responsiveFontSize(24),
     fontWeight: '600',
     color: '#2c2c2c',
     marginBottom: 20,
@@ -196,7 +256,7 @@ const styles = StyleSheet.create({
   },
   skinName: {
     textAlign: 'center',
-    fontSize: 16,
+    fontSize: responsiveFontSize(16),
     color: '#666',
     marginBottom: 20,
   },
@@ -224,7 +284,12 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   settingText: {
-    fontSize: 16,
+    fontSize: responsiveFontSize(16),
     color: '#333',
+  },
+  settingSubtext: {
+    fontSize: responsiveFontSize(14),
+    color: '#666',
+    marginTop: 2,
   },
 });

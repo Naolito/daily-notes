@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { format } from 'date-fns';
 import { StorageService } from '../services/storage';
 import { Note } from '../types';
+import { responsiveFontSize } from '../utils/responsive';
 
 export default function SearchScreen() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -119,7 +120,7 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    fontSize: 16,
+    fontSize: responsiveFontSize(16),
     padding: 8,
   },
   centerContainer: {
@@ -128,7 +129,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   statusText: {
-    fontSize: 16,
+    fontSize: responsiveFontSize(16),
     color: '#999',
     marginTop: 16,
   },
@@ -148,16 +149,16 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   noteDate: {
-    fontSize: 14,
+    fontSize: responsiveFontSize(14),
     fontWeight: '500',
     color: '#666',
   },
   noteMood: {
-    fontSize: 20,
+    fontSize: responsiveFontSize(20),
   },
   noteContent: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: responsiveFontSize(14),
+    lineHeight: responsiveFontSize(20),
     color: '#333',
   },
   imageIndicator: {
@@ -166,7 +167,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   imageCount: {
-    fontSize: 12,
+    fontSize: responsiveFontSize(12),
     color: '#007AFF',
     marginLeft: 4,
   },

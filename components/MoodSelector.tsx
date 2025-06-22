@@ -4,6 +4,7 @@ import { Mood } from '../types';
 import { VerySadEmoji, SadEmoji, NeutralEmoji, HappyEmoji, VeryHappyEmoji } from './FlatEmojis';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../contexts/ThemeContext';
+import { responsiveFontSize } from '../utils/responsive';
 
 interface MoodSelectorProps {
   selectedMood?: Mood;
@@ -70,7 +71,22 @@ export default function MoodSelector({ selectedMood, onMoodSelect }: MoodSelecto
   
   return (
     <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 10) }]}>
-      <Animated.Text style={[styles.title, { opacity: fadeAnim, color: theme.primaryText }]}>How did you feel today?</Animated.Text>
+      <Animated.Text style={[
+        styles.title, 
+        { 
+          opacity: fadeAnim, 
+          color: theme.primaryText,
+          fontFamily: theme.useHandwrittenFont ? Platform.select({
+            ios: 'Noteworthy-Light',
+            android: 'sans-serif',
+            default: "'Permanent Marker', cursive"
+          }) : theme.primaryFont,
+          transform: theme.useHandwrittenFont ? [{ rotate: '-1.5deg' }] : [],
+          fontWeight: theme.useHandwrittenFont ? '300' : '400',
+        }
+      ]}>
+        How did you feel today?
+      </Animated.Text>
       <View style={styles.moodContainer}>
         {moods.map((mood, index) => {
           const EmojiComponent = mood.component;
@@ -113,18 +129,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   title: {
-    fontSize: screenWidth < 380 ? 20 : 22,
+    fontSize: responsiveFontSize(screenWidth < 380 ? 20 : 22),
     textAlign: 'center',
     marginBottom: 0,
-    color: '#2c2c2c',
-    fontFamily: Platform.select({
-      ios: 'Noteworthy-Light',
-      android: 'sans-serif',
-      default: "'Permanent Marker', cursive"
-    }),
-    transform: [{ rotate: '-1.5deg' }],
     letterSpacing: -0.5,
-    fontWeight: '300',
   },
   moodContainer: {
     flexDirection: 'row',

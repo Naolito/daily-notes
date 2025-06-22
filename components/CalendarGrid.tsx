@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Animated } from '
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, startOfWeek, endOfWeek } from 'date-fns';
 import { DayData, Note } from '../types';
 import { useTheme } from '../contexts/ThemeContext';
+import { responsiveFontSize } from '../utils/responsive';
 
 interface CalendarGridProps {
   monthData: DayData[];
@@ -180,7 +181,7 @@ const styles = StyleSheet.create({
   weekDay: {
     flex: 1,
     textAlign: 'center',
-    fontSize: 12,
+    fontSize: responsiveFontSize(12),
     color: '#666',
     fontWeight: '500',
   },
@@ -211,7 +212,7 @@ const styles = StyleSheet.create({
     borderColor: '#333',
   },
   dayText: {
-    fontSize: 16,
+    fontSize: responsiveFontSize(16),
     color: '#333',
   },
   dayTextWithMood: {

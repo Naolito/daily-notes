@@ -8,6 +8,7 @@ import NotebookBackground from '../../components/NotebookBackground';
 import { StorageService } from '../../services/storage';
 import { DayData, Note } from '../../types';
 import { useTheme } from '../../contexts/ThemeContext';
+import { responsiveFontSize } from '../../utils/responsive';
 
 export default function CalendarScreen() {
   const { theme } = useTheme();
@@ -139,7 +140,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   monthTitle: {
-    fontSize: 20,
+    fontSize: responsiveFontSize(20),
     fontWeight: 'bold',
     color: '#333',
     textAlign: 'center',
