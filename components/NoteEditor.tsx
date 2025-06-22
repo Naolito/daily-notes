@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   View, 
   TextInput, 
@@ -20,7 +20,6 @@ import SimpleDashedBorder from './SimpleDashedBorder';
 import { Note, Mood } from '../types';
 import { NoteService } from '../services/noteService';
 import { StorageService } from '../services/storage';
-import { generateJuneMockData } from '../utils/generateMockData';
 import { responsiveFontSize, responsivePadding, heightPercentage, scale } from '../utils/responsive';
 import { VerySadEmoji, SadEmoji, NeutralEmoji, HappyEmoji, VeryHappyEmoji } from '../components/FlatEmojis';
 import { Dimensions } from 'react-native';
@@ -57,18 +56,94 @@ export default function NoteEditor() {
   const [dateBoxHeight, setDateBoxHeight] = useState(0);
   const [lastText, setLastText] = useState('');
   const textInputRef = React.useRef<TextInput>(null);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const contentRef = useRef(content);
+  const selectedMoodRef = useRef(selectedMood);
+  const imagesRef = useRef(images);
   
   // Animation values for mood appearance
   const moodFadeAnim = useRef(new Animated.Value(0)).current;
   const moodScaleAnim = useRef(new Animated.Value(0.5)).current;
 
+  // Define saveNote before using it in effects
+  const saveNote = useCallback(async (currentContent?: string) => {
+    try {
+      // Use passed content or fall back to state
+      const contentToUse = currentContent ?? content;
+      // Treat whitespace-only content as empty
+      const trimmedContent = contentToUse.trim();
+      const contentToSave = trimmedContent.length === 0 ? '' : contentToUse;
+      
+      const savedNote = await NoteService.saveCurrentNote(contentToSave, selectedMood, images);
+      setNote(savedNote);
+    } catch (error) {
+      console.error('Error saving note:', error);
+    }
+  }, [selectedMood, images, content]);
+
+  const debouncedSave = useCallback((contentToSave: string) => {
+    // Clear any pending save
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+    
+    // Schedule a new save
+    saveTimeoutRef.current = setTimeout(() => {
+      saveNote(contentToSave);
+    }, 500); // Save after 500ms of no typing
+  }, [saveNote]);
+
+  // Update refs whenever values change
+  useEffect(() => {
+    contentRef.current = content;
+  }, [content]);
+  
+  useEffect(() => {
+    selectedMoodRef.current = selectedMood;
+  }, [selectedMood]);
+  
+  useEffect(() => {
+    imagesRef.current = images;
+  }, [images]);
+
   useEffect(() => {
     loadCurrentNote();
+    
+    // Cleanup function to save on unmount
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+        // Execute the pending save immediately with the latest values from refs
+        const latestContent = contentRef.current;
+        const latestMood = selectedMoodRef.current;
+        const latestImages = imagesRef.current;
+        if (latestContent) {
+          NoteService.saveCurrentNote(latestContent, latestMood, latestImages).catch(console.error);
+        }
+      }
+    };
   }, []);
   
   useFocusEffect(
     React.useCallback(() => {
       loadCurrentNote();
+      
+      // Save when navigating away
+      return () => {
+        // Clear any pending saves and execute immediately
+        if (saveTimeoutRef.current) {
+          clearTimeout(saveTimeoutRef.current);
+        }
+        // Use refs to get latest values without causing re-renders
+        const latestContent = contentRef.current;
+        const latestMood = selectedMoodRef.current;
+        const latestImages = imagesRef.current;
+        if (latestContent !== undefined) {
+          NoteService.saveCurrentNote(latestContent, latestMood, latestImages).catch(error => {
+            console.error('Error saving on navigation:', error);
+          });
+        }
+      };
     }, [])
   );
 
@@ -80,7 +155,6 @@ export default function NoteEditor() {
       await StorageService.setCurrentDate(today);
       
       const currentNote = await NoteService.getCurrentNote();
-      console.log('Current note:', currentNote); // Debug
       
       if (currentNote) {
         setNote(currentNote);
@@ -106,19 +180,6 @@ export default function NoteEditor() {
       setContent('');
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const saveNote = async () => {
-    try {
-      // Treat whitespace-only content as empty
-      const trimmedContent = content.trim();
-      const contentToSave = trimmedContent.length === 0 ? '' : content;
-      
-      const savedNote = await NoteService.saveCurrentNote(contentToSave, selectedMood, images);
-      setNote(savedNote);
-    } catch (error) {
-      console.error('Error saving note:', error);
     }
   };
 
@@ -163,7 +224,7 @@ export default function NoteEditor() {
     
     setLastText(processedText);
     setContent(processedText);
-    saveNote();
+    debouncedSave(processedText);
   };
 
   const handleMoodSelect = async (mood: Mood | undefined) => {

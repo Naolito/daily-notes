@@ -19,6 +19,7 @@ import NotebookBackground from '../../components/NotebookBackground';
 import SimpleDashedBorder from '../../components/SimpleDashedBorder';
 import { responsivePadding } from '../../utils/responsive';
 import { useTheme } from '../../contexts/ThemeContext';
+import WelcomeInstructions from '../../components/WelcomeInstructions';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -226,38 +227,7 @@ export default function AllNotesScreen() {
     );
   }
 
-  if (notes.length === 0) {
-    return (
-      <View style={[styles.emptyContainer, { backgroundColor: theme.backgroundColor }]}>
-        <Text style={[
-          styles.emptyText, 
-          { 
-            color: theme.primaryText,
-            fontFamily: theme.useHandwrittenFont 
-              ? Platform.select({
-                  ios: 'Noteworthy-Bold',
-                  android: 'sans-serif',
-                  default: "'Patrick Hand', cursive"
-                })
-              : undefined
-          }
-        ]}>No notes yet</Text>
-        <Text style={[
-          styles.emptySubtext, 
-          { 
-            color: theme.secondaryText,
-            fontFamily: theme.useHandwrittenFont 
-              ? Platform.select({
-                  ios: 'Noteworthy-Light',
-                  android: 'sans-serif',
-                  default: "'Patrick Hand', cursive"
-                })
-              : undefined
-          }
-        ]}>Start writing your daily thoughts!</Text>
-      </View>
-    );
-  }
+  // Always show welcome instructions as the first item
 
   return (
     <View style={[styles.container, { backgroundColor: theme.backgroundColor }]}>
@@ -273,6 +243,9 @@ export default function AllNotesScreen() {
             setContentHeight(height + 100); // Add extra space
           }}
         >
+          {!searchText.trim() && (
+            <WelcomeInstructions />
+          )}
           {notes
             .filter((item) => {
               if (!searchText.trim()) return true;

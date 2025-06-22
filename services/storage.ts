@@ -99,8 +99,17 @@ export const StorageService = {
 
   async clearAllData(): Promise<void> {
     try {
+      // Get all keys first to see what we're deleting
+      const keys = await AsyncStorage.getAllKeys();
+      console.log('Keys to delete:', keys);
+      
+      // Clear all data
       await AsyncStorage.clear();
-      console.log('All data cleared');
+      console.log('All data cleared successfully');
+      
+      // Verify it's cleared
+      const remainingKeys = await AsyncStorage.getAllKeys();
+      console.log('Remaining keys after clear:', remainingKeys);
     } catch (error) {
       console.error('Error clearing data:', error);
       throw error;

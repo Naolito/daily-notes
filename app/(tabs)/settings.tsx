@@ -11,6 +11,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { StorageService } from '../../services/storage';
 import { useTheme, ThemeType } from '../../contexts/ThemeContext';
+import { useRouter } from 'expo-router';
 
 const skins = [
   { id: 'notebook', name: 'Classic Notebook', color: '#f5f0eb' },
@@ -22,6 +23,7 @@ const skins = [
 export default function SettingsScreen() {
   const { theme, themeType, setTheme } = useTheme();
   const [contentHeight, setContentHeight] = useState(0);
+  const router = useRouter();
 
   const handleDeleteData = () => {
     Alert.alert(
@@ -33,8 +35,25 @@ export default function SettingsScreen() {
           text: 'Delete', 
           style: 'destructive',
           onPress: async () => {
-            await StorageService.clearAllData();
-            Alert.alert('Success', 'All data has been deleted.');
+            try {
+              await StorageService.clearAllData();
+              Alert.alert(
+                'Success', 
+                'All data has been deleted.',
+                [
+                  {
+                    text: 'OK',
+                    onPress: () => {
+                      // Navigate to home to force refresh
+                      router.replace('/');
+                    }
+                  }
+                ]
+              );
+            } catch (error) {
+              Alert.alert('Error', 'Failed to delete data. Please try again.');
+              console.error('Error deleting data:', error);
+            }
           }
         }
       ]
