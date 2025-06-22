@@ -9,6 +9,7 @@ import {
   Text,
   TouchableOpacity,
   Animated,
+  Pressable,
 } from 'react-native';
 import { format } from 'date-fns';
 import { useFocusEffect } from '@react-navigation/native';
@@ -16,7 +17,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MoodSelector from './MoodSelector';
 import PaperTexture from './PaperTexture';
 import NotebookBackground from './NotebookBackground';
-import NotebookLines from './NotebookLines';
 import SimpleDashedBorder from './SimpleDashedBorder';
 import { Note, Mood } from '../types';
 import { NoteService } from '../services/noteService';
@@ -356,16 +356,13 @@ export default function NoteEditor() {
           </View>
         </View>
         
-        <TouchableOpacity 
-          style={styles.touchableArea} 
-          activeOpacity={1}
-          onPress={focusTextInput}
-        >
+        <View style={styles.textInputContainer}>
           {theme.showNotebookLines && (
-            <NotebookLines 
+            <NotebookBackground 
+              startFromTop={true}
+              textOffset={8}
               lineColor={theme.notebookLineColor}
               opacity={theme.notebookLineOpacity}
-              startY={0}
             />
           )}
           <TextInput
@@ -377,20 +374,23 @@ export default function NoteEditor() {
                 fontFamily: theme.useHandwrittenFont ? 'LettersForLearners' : undefined,
                 fontSize: theme.useHandwrittenFont ? 26 : 18,
                 lineHeight: 26,
-                paddingTop: 0,
+                paddingTop: 8, // Match the text offset
+                paddingBottom: 150, // Extra bottom padding for scrolling
               }
             ]}
             multiline
             value={content}
             onChangeText={handleContentChange}
             textAlignVertical="top"
-            scrollEnabled
+            scrollEnabled={true} // Enable TextInput native scroll
             autoCorrect={false}
             autoCapitalize="sentences"
             placeholder="Type here..."
             placeholderTextColor={`${theme.secondaryText}80`}
+            showsVerticalScrollIndicator={false}
+            showsHorizontalScrollIndicator={false}
           />
-        </TouchableOpacity>
+        </View>
       </View>
       
       <MoodSelector 
@@ -446,8 +446,9 @@ const styles = StyleSheet.create({
   moodInHeader: {
     marginTop: 2,
   },
-  touchableArea: {
+  textInputContainer: {
     flex: 1,
+    position: 'relative',
   },
   textInput: {
     fontSize: 26,
@@ -457,8 +458,8 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
     letterSpacing: -0.3,
     padding: 0,
-    paddingTop: 0, // Will be set dynamically
-    flex: 1,
+    paddingTop: 8, // Default padding
+    minHeight: 600, // Ensure enough space for content
     borderWidth: 0,
     borderColor: 'transparent',
   },

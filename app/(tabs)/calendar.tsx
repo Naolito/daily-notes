@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity, ActivityIndicator, ScrollView, Platform } from 'react-native';
 import { format, addMonths, subMonths, startOfMonth } from 'date-fns';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
@@ -11,6 +11,24 @@ import HybridStorageService from '../../services/hybridStorage';
 import { DayData, Note } from '../../types';
 import { useTheme } from '../../contexts/ThemeContext';
 import { responsiveFontSize } from '../../utils/responsive';
+import { VerySadEmoji, SadEmoji, NeutralEmoji, HappyEmoji, VeryHappyEmoji } from '../../components/FlatEmojis';
+
+const getMoodEmoji = (mood: number) => {
+  switch (mood) {
+    case 1:
+      return <VerySadEmoji size={24} />;
+    case 2:
+      return <SadEmoji size={24} />;
+    case 3:
+      return <NeutralEmoji size={24} />;
+    case 4:
+      return <HappyEmoji size={24} />;
+    case 5:
+      return <VeryHappyEmoji size={24} />;
+    default:
+      return null;
+  }
+};
 
 export default function CalendarScreen() {
   const { theme } = useTheme();
@@ -18,6 +36,8 @@ export default function CalendarScreen() {
   const [currentMonth, setCurrentMonth] = useState(startOfMonth(new Date()));
   const [monthNotes, setMonthNotes] = useState<Note[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const router = useRouter();
 
   // Load notes for current month
@@ -58,11 +78,15 @@ export default function CalendarScreen() {
   // Navigate to previous month
   const goToPreviousMonth = () => {
     setCurrentMonth(subMonths(currentMonth, 1));
+    setSelectedDate(null);
+    setSelectedNote(null);
   };
 
   // Navigate to next month
   const goToNextMonth = () => {
     setCurrentMonth(addMonths(currentMonth, 1));
+    setSelectedDate(null);
+    setSelectedNote(null);
   };
 
   const getMonthData = (): DayData[] => {
@@ -80,23 +104,21 @@ export default function CalendarScreen() {
     const noteForDate = monthNotes.find(n => n.date === dateStr);
     
     if (noteForDate?.content && noteForDate.content.trim().length > 0) {
-      router.push({
-        pathname: '/(tabs)/allnotes',
-        params: { scrollToDate: dateStr }
-      });
+      setSelectedDate(date);
+      setSelectedNote(noteForDate);
     } else {
+      setSelectedDate(null);
+      setSelectedNote(null);
       return false;
     }
   };
 
   return (
     <View style={[styles.container, { backgroundColor: theme.backgroundColor }]}>
-      <View style={StyleSheet.absoluteFillObject}>
-        {theme.showNotebookLines && <NotebookBackground />}
-      </View>
-      
-      {/* Header with month navigation */}
-      <View style={[styles.header, { paddingTop: Math.max(insets.top, 20) }]}>
+      {/* Calendar section without notebook lines */}
+      <View style={[styles.calendarSection, { backgroundColor: theme.backgroundColor }]}>
+        {/* Header with month navigation */}
+        <View style={[styles.header, { paddingTop: Math.max(insets.top, 20) }]}>
         <TouchableOpacity 
           onPress={goToPreviousMonth}
           style={styles.navButton}
@@ -114,10 +136,10 @@ export default function CalendarScreen() {
         >
           <Ionicons name="chevron-forward" size={24} color={theme.primaryText} />
         </TouchableOpacity>
-      </View>
-      
-      {/* Calendar content */}
-      <View style={styles.calendarWrapper}>
+        </View>
+        
+        {/* Calendar content */}
+        <View style={styles.calendarWrapper}>
         {isLoading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={theme.primaryText} />
@@ -126,12 +148,75 @@ export default function CalendarScreen() {
           <CalendarGrid
             monthData={getMonthData()}
             monthDate={currentMonth}
-            selectedDate={null}
+            selectedDate={selectedDate}
             onDateSelect={handleDateSelect}
             notes={monthNotes}
           />
         )}
+        </View>
       </View>
+      
+      {/* Selected note display - match Today screen layout */}
+      {selectedNote && (
+        <View style={styles.noteDisplayWrapper}>
+          {/* Date header box */}
+          <View style={styles.dateHeaderWrapper}>
+            <View style={styles.dateHeaderBox}>
+              <View style={styles.dateHeaderRow}>
+                <Text style={[
+                  styles.dateHeaderText, 
+                  { 
+                    color: theme.secondaryText,
+                    fontFamily: theme.useHandwrittenFont 
+                      ? Platform.select({
+                          ios: 'Noteworthy-Bold',
+                          android: 'sans-serif',
+                          default: "'Patrick Hand', cursive"
+                        })
+                      : undefined
+                  }
+                ]}>
+                  {selectedDate && format(selectedDate, 'EEEE, MMMM d, yyyy')}
+                </Text>
+                {selectedNote.mood && (
+                  <View style={styles.moodContainer}>
+                    {getMoodEmoji(selectedNote.mood)}
+                  </View>
+                )}
+              </View>
+            </View>
+          </View>
+          
+          {/* Note content with notebook lines */}
+          <ScrollView 
+            style={styles.noteContentScrollView}
+            contentContainerStyle={styles.noteContentContainer}
+          >
+            {theme.showNotebookLines && (
+              <View style={StyleSheet.absoluteFillObject}>
+                <NotebookBackground 
+                  startFromTop={true}
+                  textOffset={10}
+                  lineColor={theme.notebookLineColor}
+                  opacity={theme.notebookLineOpacity}
+                />
+              </View>
+            )}
+            <Text style={[
+              styles.noteText, 
+              { 
+                color: theme.primaryText,
+                fontFamily: theme.useHandwrittenFont ? 'LettersForLearners' : undefined,
+                fontSize: theme.useHandwrittenFont ? 26 : 16,
+                lineHeight: 26,  // Fixed line height to match notebook lines
+                paddingTop: 10, // Match the text offset to align with lines
+              }
+            ]}>
+              {selectedNote.content}
+            </Text>
+          </ScrollView>
+        </View>
+      )}
     </View>
   );
 }
@@ -139,6 +224,9 @@ export default function CalendarScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  calendarSection: {
+    paddingBottom: 0,
   },
   header: {
     flexDirection: 'row',
@@ -155,12 +243,49 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   calendarWrapper: {
-    flex: 1,
     paddingHorizontal: 16,
   },
   loadingContainer: {
-    flex: 1,
+    height: 400,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  noteDisplayWrapper: {
+    flex: 1,
+    paddingHorizontal: 32, // Match Today screen margins
+  },
+  dateHeaderWrapper: {
+    marginTop: 0,
+    marginBottom: 8,
+  },
+  dateHeaderBox: {
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+  },
+  dateHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dateHeaderText: {
+    fontSize: 20,
+    fontWeight: '500',
+  },
+  moodContainer: {
+    marginLeft: 8,
+  },
+  noteContentScrollView: {
+    flex: 1,
+  },
+  noteContentContainer: {
+    paddingTop: 0, // No top padding, text handles it
+    paddingBottom: 20,
+    minHeight: '100%',
+  },
+  noteText: {
+    fontSize: 26,
+    lineHeight: 26, // Fixed to match notebook lines
+    letterSpacing: -0.3,
+    textAlignVertical: 'top',
   },
 });
