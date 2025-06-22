@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   View, 
   TextInput, 
@@ -8,6 +8,7 @@ import {
   ScrollView,
   Text,
   TouchableOpacity,
+  Animated,
 } from 'react-native';
 import { format } from 'date-fns';
 import { useFocusEffect } from '@react-navigation/native';
@@ -50,6 +51,10 @@ export default function NoteEditor() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [dateBoxHeight, setDateBoxHeight] = useState(0);
   const textInputRef = React.useRef<TextInput>(null);
+  
+  // Animation values for mood appearance
+  const moodFadeAnim = useRef(new Animated.Value(0)).current;
+  const moodScaleAnim = useRef(new Animated.Value(0.5)).current;
 
   useEffect(() => {
     loadCurrentNote();
@@ -74,6 +79,11 @@ export default function NoteEditor() {
         setContent(currentNote.content || '');
         setSelectedMood(currentNote.mood);
         setImages(currentNote.images);
+        // If mood exists, set animation values to show it
+        if (currentNote.mood) {
+          moodFadeAnim.setValue(1);
+          moodScaleAnim.setValue(1);
+        }
       } else {
         // No note exists for this date
         setNote(null);
@@ -104,7 +114,40 @@ export default function NoteEditor() {
   };
 
   const handleMoodSelect = async (mood: Mood | undefined) => {
-    setSelectedMood(mood);
+    if (mood && !selectedMood) {
+      // Animate mood appearance
+      setSelectedMood(mood);
+      Animated.parallel([
+        Animated.timing(moodFadeAnim, {
+          toValue: 1,
+          duration: 400,
+          useNativeDriver: true,
+        }),
+        Animated.spring(moodScaleAnim, {
+          toValue: 1,
+          friction: 8,
+          tension: 40,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else if (!mood) {
+      // Animate mood disappearance
+      Animated.parallel([
+        Animated.timing(moodFadeAnim, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(moodScaleAnim, {
+          toValue: 0.5,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        setSelectedMood(mood);
+      });
+    }
+    
     const currentNote = await NoteService.getCurrentNote();
     if (currentNote) {
       currentNote.mood = mood;
@@ -157,12 +200,19 @@ export default function NoteEditor() {
             <View style={styles.dateRow}>
               <Text style={styles.dateHeader}>{displayDate}</Text>
               {selectedMood && (
-                <TouchableOpacity 
-                  style={styles.moodInHeader}
-                  onPress={() => handleMoodSelect(undefined)}
+                <Animated.View 
+                  style={[
+                    styles.moodInHeader,
+                    {
+                      opacity: moodFadeAnim,
+                      transform: [{ scale: moodScaleAnim }],
+                    }
+                  ]}
                 >
-                  {React.createElement(moodEmojis[selectedMood], { size: 32 })}
-                </TouchableOpacity>
+                  <TouchableOpacity onPress={() => handleMoodSelect(undefined)}>
+                    {React.createElement(moodEmojis[selectedMood], { size: 32 })}
+                  </TouchableOpacity>
+                </Animated.View>
               )}
             </View>
           </View>
@@ -240,7 +290,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
   },
   moodInHeader: {
-    marginTop: -2,
+    marginTop: 2,
   },
   touchableArea: {
     flex: 1,

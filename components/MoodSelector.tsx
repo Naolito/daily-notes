@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Platform, Dimensions } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Platform, Dimensions, Animated } from 'react-native';
 import { Mood } from '../types';
 import { VerySadEmoji, SadEmoji, NeutralEmoji, HappyEmoji, VeryHappyEmoji } from './FlatEmojis';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,28 +19,80 @@ const moods = [
 
 export default function MoodSelector({ selectedMood, onMoodSelect }: MoodSelectorProps) {
   const insets = useSafeAreaInsets();
-  const { width: screenWidth } = Dimensions.get('window');
+  const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
   const emojiSize = screenWidth < 380 ? 50 : 60;
   
-  // Hide selector if mood is already selected
-  if (selectedMood) {
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const [animatingMood, setAnimatingMood] = useState<Mood | null>(null);
+  const [isAnimating, setIsAnimating] = useState(false);
+  
+  // Reset animations when selectedMood changes to undefined
+  React.useEffect(() => {
+    if (!selectedMood) {
+      fadeAnim.setValue(1);
+      scaleAnim.setValue(1);
+      setAnimatingMood(null);
+      setIsAnimating(false);
+    }
+  }, [selectedMood]);
+  
+  // Hide selector if mood is already selected and not animating
+  if (selectedMood && !isAnimating) {
     return null;
   }
   
+  const handleMoodPress = (mood: Mood) => {
+    setAnimatingMood(mood);
+    setIsAnimating(true);
+    
+    // Start animations
+    Animated.parallel([
+      // Fade out all elements
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+      // Scale up selected mood while fading
+      Animated.timing(scaleAnim, {
+        toValue: 1.5,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setIsAnimating(false);
+      onMoodSelect(mood as Mood);
+    });
+  };
+  
   return (
     <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 10) }]}>
-      <Text style={styles.title}>How did you feel today?</Text>
+      <Animated.Text style={[styles.title, { opacity: fadeAnim }]}>How did you feel today?</Animated.Text>
       <View style={styles.moodContainer}>
-        {moods.map((mood) => {
+        {moods.map((mood, index) => {
           const EmojiComponent = mood.component;
+          const isSelected = animatingMood === mood.value;
+          
           return (
-            <TouchableOpacity
+            <Animated.View
               key={mood.value}
-              style={styles.moodButton}
-              onPress={() => onMoodSelect(mood.value as Mood)}
+              style={[
+                styles.moodButtonWrapper,
+                {
+                  opacity: fadeAnim,
+                  transform: isSelected ? [{ scale: scaleAnim }] : [],
+                }
+              ]}
             >
-              <EmojiComponent size={emojiSize} />
-            </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.moodButton}
+                onPress={() => handleMoodPress(mood.value as Mood)}
+                disabled={isAnimating}
+              >
+                <EmojiComponent size={emojiSize} />
+              </TouchableOpacity>
+            </Animated.View>
           );
         })}
       </View>
@@ -78,6 +130,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 0,
     width: '100%',
+  },
+  moodButtonWrapper: {
+    position: 'relative',
   },
   moodButton: {
     padding: 5,
