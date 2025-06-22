@@ -1,13 +1,14 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Animated } from 'react-native';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, startOfWeek, endOfWeek } from 'date-fns';
 import { DayData, Note } from '../types';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface CalendarGridProps {
   monthData: DayData[];
   monthDate: Date;
   selectedDate: Date | null;
-  onDateSelect: (date: Date) => void;
+  onDateSelect: (date: Date) => Promise<void | boolean>;
   notes?: Note[];
 }
 
@@ -29,6 +30,9 @@ const darkenColor = (hex: string): string => {
 };
 
 export default function CalendarGrid({ monthData, monthDate, selectedDate, onDateSelect, notes = [] }: CalendarGridProps) {
+  const { theme } = useTheme();
+  const [shakingDate, setShakingDate] = useState<string | null>(null);
+  const shakeAnimations = useRef<{ [key: string]: Animated.Value }>({}).current;
   const monthStart = startOfMonth(monthDate);
   const monthEnd = endOfMonth(monthDate);
   const startDate = startOfWeek(monthStart);
@@ -36,17 +40,53 @@ export default function CalendarGrid({ monthData, monthDate, selectedDate, onDat
   
   const days = eachDayOfInterval({ start: startDate, end: endDate });
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  
+  // Determine empty day color based on theme
+  const emptyDayColor = theme.themeType === 'pink' 
+    ? 'rgb(236, 202, 202)' 
+    : theme.themeType === 'dark' 
+      ? '#2e2f34'
+      : 'rgb(220, 214, 214)';
 
   const getDayData = (date: Date): DayData | undefined => {
     const dateStr = format(date, 'yyyy-MM-dd');
     return monthData.find(d => d.date === dateStr);
   };
 
+  const triggerShake = (dateStr: string) => {
+    if (!shakeAnimations[dateStr]) {
+      shakeAnimations[dateStr] = new Animated.Value(0);
+    }
+    
+    Animated.sequence([
+      Animated.timing(shakeAnimations[dateStr], {
+        toValue: 10,
+        duration: 50,
+        useNativeDriver: true,
+      }),
+      Animated.timing(shakeAnimations[dateStr], {
+        toValue: -10,
+        duration: 50,
+        useNativeDriver: true,
+      }),
+      Animated.timing(shakeAnimations[dateStr], {
+        toValue: 10,
+        duration: 50,
+        useNativeDriver: true,
+      }),
+      Animated.timing(shakeAnimations[dateStr], {
+        toValue: 0,
+        duration: 50,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.weekDaysContainer}>
         {weekDays.map((day) => (
-          <Text key={day} style={styles.weekDay}>{day}</Text>
+          <Text key={day} style={[styles.weekDay, { color: theme.secondaryText }]}>{day}</Text>
         ))}
       </View>
       
@@ -64,30 +104,55 @@ export default function CalendarGrid({ monthData, monthDate, selectedDate, onDat
           const noteWithContent = notes.find(n => n.date === dateStr && n.content && n.content.trim().length > 0);
           const hasContent = !!noteWithContent;
           
+          // Determine background color for empty days
+          const emptyBgColor = isCurrentMonth ? emptyDayColor : (theme.themeType === 'dark' ? '#26272a' : emptyDayColor);
+          
           // Determine dot color (darken the box color by 30%)
-          const dotColor = moodColor ? darkenColor(moodColor) : darkenColor('#dcd6d6');
+          const dotColor = moodColor ? darkenColor(moodColor) : (theme.themeType === 'dark' ? '#4a4c52' : darkenColor(emptyDayColor));
+          
+          // Initialize shake animation for this date if not exists
+          if (!shakeAnimations[dateStr]) {
+            shakeAnimations[dateStr] = new Animated.Value(0);
+          }
+          
+          const handlePress = async () => {
+            const result = await onDateSelect(day);
+            if (result === false) {
+              triggerShake(dateStr);
+            }
+          };
           
           return (
-            <TouchableOpacity
+            <Animated.View
               key={day.toISOString()}
               style={[
                 styles.day,
                 !isCurrentMonth && styles.otherMonth,
+                {
+                  transform: [{ translateX: shakeAnimations[dateStr] || new Animated.Value(0) }]
+                }
               ]}
-              onPress={() => onDateSelect(day)}
             >
+              <TouchableOpacity
+                onPress={handlePress}
+                style={{ flex: 1 }}
+              >
               <View style={[
                 styles.dayBox,
+                { backgroundColor: emptyBgColor },
                 hasNote && moodColor && { backgroundColor: moodColor },
-                !hasNote && styles.emptyDayBox,
-                isSelected && styles.selectedDayBox,
-                isToday && styles.todayBox,
+                isSelected && [styles.selectedDayBox, theme.themeType === 'dark' && { borderColor: '#4a8ef4' }],
+                isToday && [styles.todayBox, theme.themeType === 'dark' && { borderColor: theme.borderColor }],
               ]}>
                 <Text style={[
                   styles.dayText,
-                  !isCurrentMonth && styles.otherMonthText,
+                  !isCurrentMonth && { 
+                    color: theme.themeType === 'dark' ? theme.secondaryText : '#999',
+                    opacity: theme.themeType === 'dark' ? 0.5 : 1
+                  },
                   hasNote && styles.dayTextWithMood,
                   isSelected && styles.selectedDayText,
+                  !hasNote && isCurrentMonth && { color: theme.primaryText },
                 ]}>
                   {format(day, 'd')}
                 </Text>
@@ -95,7 +160,8 @@ export default function CalendarGrid({ monthData, monthDate, selectedDate, onDat
                   <View style={[styles.contentIndicator, { backgroundColor: dotColor }]} />
                 )}
               </View>
-            </TouchableOpacity>
+              </TouchableOpacity>
+            </Animated.View>
           );
         })}
       </View>
@@ -132,7 +198,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 8,
-    backgroundColor: 'rgb(220, 214, 214)',
   },
   emptyDayBox: {
     backgroundColor: 'rgb(220, 214, 214)',
@@ -154,7 +219,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   otherMonth: {
-    opacity: 0.3,
+    // Opacity handled inline based on theme
   },
   otherMonthText: {
     color: '#999',

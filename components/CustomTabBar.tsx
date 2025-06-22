@@ -3,14 +3,20 @@ import { View, Text, TouchableOpacity, StyleSheet, Platform, Animated } from 're
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../contexts/ThemeContext';
 
 const ACTIVE_COLOR = '#2196F3'; // Blue for active tab
 
 export default function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+  const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   
   return (
-    <View style={[styles.container, { paddingBottom: insets.bottom }]}>
+    <View style={[styles.container, { 
+      paddingBottom: insets.bottom,
+      backgroundColor: theme.tabBarBackground,
+      borderTopColor: theme.tabBarBorder
+    }]}>
       <View style={styles.tabContainer}>
         {state.routes.map((route, index) => {
           const { options } = descriptors[route.key];
@@ -38,13 +44,13 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
                   isFocused && styles.activeTab
                 ]}
               >
-                {route.name === 'index' && <Ionicons name="today-outline" size={32} color={isFocused ? ACTIVE_COLOR : '#666'} />}
-                {route.name === 'allnotes' && <Ionicons name="search-outline" size={32} color={isFocused ? ACTIVE_COLOR : '#666'} />}
-                {route.name === 'calendar' && <Ionicons name="calendar-outline" size={32} color={isFocused ? ACTIVE_COLOR : '#666'} />}
-                {route.name === 'settings' && <Ionicons name="settings-outline" size={32} color={isFocused ? ACTIVE_COLOR : '#666'} />}
+                {route.name === 'index' && <Ionicons name="today-outline" size={32} color={isFocused ? ACTIVE_COLOR : theme.secondaryText} />}
+                {route.name === 'allnotes' && <Ionicons name="search-outline" size={32} color={isFocused ? ACTIVE_COLOR : theme.secondaryText} />}
+                {route.name === 'calendar' && <Ionicons name="calendar-outline" size={32} color={isFocused ? ACTIVE_COLOR : theme.secondaryText} />}
+                {route.name === 'settings' && <Ionicons name="settings-outline" size={32} color={isFocused ? ACTIVE_COLOR : theme.secondaryText} />}
                 <Text style={[
                   styles.tabText,
-                  { color: isFocused ? ACTIVE_COLOR : '#666' }
+                  { color: isFocused ? ACTIVE_COLOR : theme.secondaryText }
                 ]}>
                   {label}
                 </Text>
@@ -60,12 +66,12 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#f5f0eb',
-    borderTopWidth: 2,
+    borderTopWidth: 1,
     borderTopColor: '#e8dfd6',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
     elevation: 5,
   },
   tabContainer: {

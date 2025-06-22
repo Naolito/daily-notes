@@ -11,12 +11,14 @@ import {
 } from 'react-native';
 import { format } from 'date-fns';
 import { useFocusEffect } from '@react-navigation/native';
+import { useLocalSearchParams } from 'expo-router';
 import { StorageService } from '../../services/storage';
 import { Note } from '../../types';
 import { VerySadEmoji, SadEmoji, NeutralEmoji, HappyEmoji, VeryHappyEmoji } from '../../components/FlatEmojis';
 import NotebookBackground from '../../components/NotebookBackground';
 import SimpleDashedBorder from '../../components/SimpleDashedBorder';
 import { responsivePadding } from '../../utils/responsive';
+import { useTheme } from '../../contexts/ThemeContext';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -39,15 +41,15 @@ const getMoodEmoji = (mood: number) => {
   }
 };
 
-const HighlightedText = ({ text, searchText }: { text: string; searchText: string }) => {
+const HighlightedText = ({ text, searchText, textColor, fontFamily, fontSize }: { text: string; searchText: string; textColor: string; fontFamily?: string; fontSize: number }) => {
   if (!searchText.trim()) {
-    return <Text style={styles.noteText}>{text}</Text>;
+    return <Text style={[styles.noteText, { color: textColor, fontFamily, fontSize, lineHeight: fontSize + 4 }]}>{text}</Text>;
   }
 
   const parts = text.split(new RegExp(`(${searchText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
   
   return (
-    <Text style={styles.noteText}>
+    <Text style={[styles.noteText, { color: textColor, fontFamily, fontSize, lineHeight: fontSize + 4 }]}>
       {parts.map((part, index) => {
         if (part.toLowerCase() === searchText.toLowerCase()) {
           return (
@@ -62,10 +64,10 @@ const HighlightedText = ({ text, searchText }: { text: string; searchText: strin
   );
 };
 
-const NoteItem = ({ item, searchText }: { item: Note; searchText: string }) => {
+const NoteItem = ({ item, searchText, theme }: { item: Note; searchText: string; theme: any }) => {
   const [itemHeight, setItemHeight] = useState(0);
   const noteWidth = screenWidth - 32;
-  const borderColor = item.mood ? moodColors[item.mood] : '#333';
+  const borderColor = item.mood ? moodColors[item.mood] : theme.borderColor;
   
   return (
     <View 
@@ -77,28 +79,95 @@ const NoteItem = ({ item, searchText }: { item: Note; searchText: string }) => {
         }
       }}
     >
-      {itemHeight > 0 && (
+      {itemHeight > 0 && theme.useDottedBorders && (
         <SimpleDashedBorder width={noteWidth} height={itemHeight} color={borderColor} />
       )}
-      <TouchableOpacity style={styles.noteItem}>
+      <TouchableOpacity style={[
+        styles.noteItem,
+        theme.cardStyle && !theme.useDottedBorders && {
+          ...theme.cardStyle,
+          shadowOffset: { width: 0, height: 2 },
+          elevation: 4,
+          marginBottom: 12,
+          borderWidth: item.mood ? 2 : 0,
+          borderColor: item.mood ? moodColors[item.mood] : 'transparent',
+        }
+      ]}>
         <View style={styles.noteHeader}>
-          <Text style={styles.noteDate}>
+          <Text style={[
+            styles.noteDate, 
+            { 
+              color: theme.secondaryText,
+              fontFamily: theme.useHandwrittenFont 
+                ? Platform.select({
+                    ios: 'Noteworthy-Bold',
+                    android: 'sans-serif',
+                    default: "'Patrick Hand', cursive"
+                  })
+                : undefined
+            }
+          ]}>
             {format(new Date(item.date), 'EEEE, MMMM d, yyyy')}
           </Text>
           {item.mood && getMoodEmoji(item.mood)}
         </View>
-        <HighlightedText text={item.content || 'No content'} searchText={searchText} />
+        {item.content ? (
+          <HighlightedText 
+            text={item.content} 
+            searchText={searchText} 
+            textColor={theme.primaryText} 
+            fontFamily={theme.useHandwrittenFont ? 'LettersForLearners' : undefined}
+            fontSize={theme.useHandwrittenFont ? 26 : 16}
+          />
+        ) : (
+          <Text style={[
+            styles.noteText, 
+            { 
+              color: theme.primaryText,
+              opacity: 0.5,
+              fontFamily: theme.useHandwrittenFont ? 'LettersForLearners' : undefined,
+              fontSize: theme.useHandwrittenFont ? 26 : 16,
+              lineHeight: (theme.useHandwrittenFont ? 26 : 16) + 4
+            }
+          ]}>
+            Type here...
+          </Text>
+        )}
       </TouchableOpacity>
     </View>
   );
 };
 
 export default function AllNotesScreen() {
+  const { theme } = useTheme();
+  const params = useLocalSearchParams();
   const [notes, setNotes] = useState<Note[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchText, setSearchText] = useState('');
   const [contentHeight, setContentHeight] = useState(0);
+  const [scrollToDate, setScrollToDate] = useState<string | undefined>();
   const scrollViewRef = useRef<ScrollView>(null);
+
+  const scrollToNote = (index: number, totalNotes: number) => {
+    // More generous height estimation to ensure we scroll far enough
+    // Most notes with text + mood + spacing are taller than expected
+    const estimatedNoteHeight = 180; // Increased from 100-130
+    const noteMargin = 16; // marginBottom from noteWrapper
+    
+    // Calculate total height per note
+    const heightPerNote = estimatedNoteHeight + noteMargin;
+    
+    // Calculate position
+    const topPadding = 16; // from notesContainer
+    const yPosition = topPadding + (index * heightPerNote);
+    
+    const screenHeight = Dimensions.get('window').height;
+    // Center the note on screen
+    const scrollY = Math.max(0, yPosition - screenHeight / 2 + estimatedNoteHeight / 2);
+    
+    console.log(`Note height estimate: ${heightPerNote}px, scrolling to Y: ${scrollY}`);
+    scrollViewRef.current?.scrollTo({ y: scrollY, animated: false });
+  };
 
   useEffect(() => {
     loadAllNotes();
@@ -108,25 +177,39 @@ export default function AllNotesScreen() {
     React.useCallback(() => {
       // Reload notes every time the screen gains focus
       loadAllNotes();
-    }, [])
+    }, [params.scrollToDate])
   );
 
   const loadAllNotes = async () => {
     try {
       const allNotes = await StorageService.getAllNotes();
-      const sortedNotes = allNotes.sort((a, b) => 
+      // Filter out notes without content
+      const notesWithContent = allNotes.filter(note => note.content && note.content.trim().length > 0);
+      const sortedNotes = notesWithContent.sort((a, b) => 
         new Date(a.date).getTime() - new Date(b.date).getTime()
       );
       
-      // Only scroll to end if we have more notes than before (new note added)
-      const shouldScroll = sortedNotes.length > notes.length;
-      
       setNotes(sortedNotes);
       
-      if (shouldScroll && sortedNotes.length > 0) {
+      // Store sorted notes for scroll calculation
+      setScrollToDate(params.scrollToDate as string | undefined);
+      
+      // Check if we should scroll to a specific date
+      if (params.scrollToDate && sortedNotes.length > 0) {
+        // Find the note with the specified date
+        const targetNoteIndex = sortedNotes.findIndex(note => note.date === params.scrollToDate);
+        if (targetNoteIndex !== -1) {
+          // Delay scroll to ensure layout is complete
+          setTimeout(() => {
+            console.log(`Scrolling to date ${params.scrollToDate} at index ${targetNoteIndex} of ${sortedNotes.length} notes`);
+            scrollToNote(targetNoteIndex, sortedNotes.length);
+          }, 300);
+        }
+      } else if (sortedNotes.length > 0 && !params.scrollToDate) {
+        // Default behavior: scroll to end
         setTimeout(() => {
-          scrollViewRef.current?.scrollToEnd({ animated: true });
-        }, 100);
+          scrollViewRef.current?.scrollToEnd({ animated: false });
+        }, 50);
       }
     } catch (error) {
       console.error('Error loading notes:', error);
@@ -137,23 +220,47 @@ export default function AllNotesScreen() {
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <Text>Loading...</Text>
+      <View style={[styles.loadingContainer, { backgroundColor: theme.backgroundColor }]}>
+        <Text style={{ color: theme.primaryText }}>Loading...</Text>
       </View>
     );
   }
 
   if (notes.length === 0) {
     return (
-      <View style={styles.emptyContainer}>
-        <Text style={styles.emptyText}>No notes yet</Text>
-        <Text style={styles.emptySubtext}>Start writing your daily thoughts!</Text>
+      <View style={[styles.emptyContainer, { backgroundColor: theme.backgroundColor }]}>
+        <Text style={[
+          styles.emptyText, 
+          { 
+            color: theme.primaryText,
+            fontFamily: theme.useHandwrittenFont 
+              ? Platform.select({
+                  ios: 'Noteworthy-Bold',
+                  android: 'sans-serif',
+                  default: "'Patrick Hand', cursive"
+                })
+              : undefined
+          }
+        ]}>No notes yet</Text>
+        <Text style={[
+          styles.emptySubtext, 
+          { 
+            color: theme.secondaryText,
+            fontFamily: theme.useHandwrittenFont 
+              ? Platform.select({
+                  ios: 'Noteworthy-Light',
+                  android: 'sans-serif',
+                  default: "'Patrick Hand', cursive"
+                })
+              : undefined
+          }
+        ]}>Start writing your daily thoughts!</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.backgroundColor }]}>
       <ScrollView
         ref={scrollViewRef}
         showsVerticalScrollIndicator={false}
@@ -171,16 +278,43 @@ export default function AllNotesScreen() {
               if (!searchText.trim()) return true;
               return item.content?.toLowerCase().includes(searchText.toLowerCase());
             })
-            .map((item) => (
-              <NoteItem key={item.id} item={item} searchText={searchText} />
+            .map((item, index) => (
+              <View key={item.id} id={`note-${item.date}`}>
+                <NoteItem 
+                  item={item} 
+                  searchText={searchText} 
+                  theme={theme}
+                />
+              </View>
             ))}
         </View>
       </ScrollView>
-      <View style={styles.searchBarContainer}>
+      <View style={[
+        styles.searchBarContainer, 
+        { 
+          backgroundColor: theme.themeType === 'paper' ? 'transparent' : theme.searchBarBackground, 
+          borderTopColor: theme.themeType === 'paper' ? 'transparent' : theme.dividerColor,
+          paddingHorizontal: theme.themeType === 'paper' ? 20 : 16,
+        }
+      ]}>
         <TextInput
-          style={styles.searchBar}
+          style={[
+            styles.searchBar, 
+            { 
+              backgroundColor: theme.surfaceColor, 
+              color: theme.searchBarText,
+              ...(theme.themeType === 'paper' && {
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.08,
+                shadowRadius: 8,
+                elevation: 3,
+                borderWidth: 0,
+              })
+            }
+          ]}
           placeholder="Search..."
-          placeholderTextColor="#999"
+          placeholderTextColor={theme.secondaryText}
           value={searchText}
           onChangeText={setSearchText}
         />
@@ -212,21 +346,11 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 24,
-    fontFamily: Platform.select({
-      ios: 'Noteworthy-Bold',
-      android: 'sans-serif',
-      default: "'Patrick Hand', cursive"
-    }),
     color: '#4a4a4a',
     marginBottom: 10,
   },
   emptySubtext: {
     fontSize: 16,
-    fontFamily: Platform.select({
-      ios: 'Noteworthy-Light',
-      android: 'sans-serif',
-      default: "'Patrick Hand', cursive"
-    }),
     color: '#666',
   },
   notesContainer: {
@@ -244,17 +368,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   noteDate: {
     fontSize: 16,
     fontWeight: '500',
     color: '#4a4a4a',
-    fontFamily: Platform.select({
-      ios: 'Noteworthy-Bold',
-      android: 'sans-serif',
-      default: "'Patrick Hand', cursive"
-    }),
     flex: 1,
     marginRight: 8,
   },
@@ -262,7 +381,6 @@ const styles = StyleSheet.create({
     fontSize: 26,
     lineHeight: responsivePadding(26), // Exact match with notebook lines
     color: '#1a1a1a',
-    fontFamily: 'LettersForLearners',
     letterSpacing: -0.3,
     paddingTop: responsivePadding(26) - 26 + 8, // Align text to bottom of lines
   },

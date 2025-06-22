@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { StorageService } from '../../services/storage';
+import { useTheme, ThemeType } from '../../contexts/ThemeContext';
 
 const skins = [
   { id: 'notebook', name: 'Classic Notebook', color: '#f5f0eb' },
@@ -19,7 +20,7 @@ const skins = [
 ];
 
 export default function SettingsScreen() {
-  const [selectedSkin, setSelectedSkin] = useState('notebook');
+  const { theme, themeType, setTheme } = useTheme();
   const [contentHeight, setContentHeight] = useState(0);
 
   const handleDeleteData = () => {
@@ -43,19 +44,30 @@ export default function SettingsScreen() {
   const SettingItem = ({ title, onPress, icon, danger = false }: any) => {
     return (
       <TouchableOpacity 
-        style={[styles.settingItem, danger && styles.dangerItem]} 
+        style={[
+          styles.settingItem, 
+          { backgroundColor: theme.settingsButtonBackground },
+          theme.themeType === 'paper' && {
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.06,
+            shadowRadius: 6,
+            elevation: 2,
+            borderWidth: 0,
+          }
+        ]} 
         onPress={onPress}
       >
         <View style={styles.settingContent}>
-          <Ionicons name={icon} size={24} color={danger ? '#F44336' : '#666'} />
-          <Text style={[styles.settingText, danger && styles.dangerText]}>{title}</Text>
+          <Ionicons name={icon} size={24} color={danger ? '#F44336' : theme.secondaryText} />
+          <Text style={[styles.settingText, { color: danger ? '#F44336' : theme.primaryText }]}>{title}</Text>
         </View>
       </TouchableOpacity>
     );
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.backgroundColor }]}>
       <ScrollView 
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
@@ -68,7 +80,7 @@ export default function SettingsScreen() {
           }}
         >
           
-          <Text style={styles.sectionTitle}>Appearance</Text>
+          <Text style={[styles.sectionTitle, { color: theme.primaryText }]}>Appearance</Text>
           
           <View style={styles.skinSelector}>
             {skins.map((skin) => (
@@ -77,24 +89,30 @@ export default function SettingsScreen() {
                 style={[
                   styles.skinOption,
                   { backgroundColor: skin.color },
-                  selectedSkin === skin.id && styles.selectedSkin
+                  themeType === skin.id && styles.selectedSkin
                 ]}
-                onPress={() => setSelectedSkin(skin.id)}
+                onPress={() => setTheme(skin.id as ThemeType)}
               >
-                {selectedSkin === skin.id && (
+                {themeType === skin.id && (
                   <Ionicons name="checkmark-circle" size={24} color="#2196F3" />
                 )}
               </TouchableOpacity>
             ))}
           </View>
           
-          <Text style={styles.skinName}>
-            {skins.find(s => s.id === selectedSkin)?.name}
+          <Text style={[
+            styles.skinName, 
+            { 
+              color: theme.secondaryText,
+              fontFamily: theme.useHandwrittenFont ? 'LettersForLearners' : undefined
+            }
+          ]}>
+            {skins.find(s => s.id === themeType)?.name}
           </Text>
           
-          <View style={styles.divider} />
+          <View style={[styles.divider, { backgroundColor: theme.dividerColor }]} />
           
-          <Text style={styles.sectionTitle}>Privacy & Data</Text>
+          <Text style={[styles.sectionTitle, { color: theme.primaryText }]}>Privacy & Data</Text>
           
           <View style={styles.settingsGroup}>
             <SettingItem 
@@ -117,17 +135,11 @@ export default function SettingsScreen() {
             />
           </View>
           
-          <View style={styles.divider} />
+          <View style={[styles.divider, { backgroundColor: theme.dividerColor }]} />
           
-          <Text style={styles.sectionTitle}>About</Text>
+          <Text style={[styles.sectionTitle, { color: theme.primaryText }]}>About</Text>
           
           <View style={styles.settingsGroup}>
-            <SettingItem 
-              title="Version 1.0.0" 
-              icon="information-circle-outline"
-              onPress={() => {}}
-            />
-            
             <SettingItem 
               title="Contact" 
               icon="mail-outline"
@@ -186,7 +198,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 16,
     color: '#666',
-    fontFamily: 'LettersForLearners',
     marginBottom: 20,
   },
   divider: {
@@ -207,9 +218,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 8,
   },
-  dangerItem: {
-    backgroundColor: 'rgb(220, 214, 214)',
-  },
   settingContent: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -218,8 +226,5 @@ const styles = StyleSheet.create({
   settingText: {
     fontSize: 16,
     color: '#333',
-  },
-  dangerText: {
-    color: '#F44336',
   },
 });

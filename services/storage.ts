@@ -10,10 +10,17 @@ export const StorageService = {
       const existingNotes = await this.getAllNotes();
       const noteIndex = existingNotes.findIndex(n => n.date === note.date);
       
-      if (noteIndex >= 0) {
-        existingNotes[noteIndex] = note;
+      // If content is empty/whitespace only and no mood, remove the note
+      if ((!note.content || note.content.trim().length === 0) && !note.mood) {
+        if (noteIndex >= 0) {
+          existingNotes.splice(noteIndex, 1);
+        }
       } else {
-        existingNotes.push(note);
+        if (noteIndex >= 0) {
+          existingNotes[noteIndex] = note;
+        } else {
+          existingNotes.push(note);
+        }
       }
       
       await AsyncStorage.setItem(NOTES_STORAGE_KEY, JSON.stringify(existingNotes));

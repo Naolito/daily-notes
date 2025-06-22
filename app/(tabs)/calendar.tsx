@@ -2,12 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Text, TouchableOpacity, FlatList } from 'react-native';
 import { format, addMonths, subMonths, startOfMonth } from 'date-fns';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import CalendarGrid from '../../components/CalendarGrid';
 import NotebookBackground from '../../components/NotebookBackground';
 import { StorageService } from '../../services/storage';
 import { DayData, Note } from '../../types';
+import { useTheme } from '../../contexts/ThemeContext';
 
 export default function CalendarScreen() {
+  const { theme } = useTheme();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [allNotes, setAllNotes] = useState<Note[]>([]);
   const [contentHeight, setContentHeight] = useState(0);
@@ -24,6 +27,13 @@ export default function CalendarScreen() {
   useEffect(() => {
     loadAllNotes();
   }, []);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      // Reload notes every time the screen gains focus
+      loadAllNotes();
+    }, [])
+  );
 
   useEffect(() => {
     // Find the index of current month and calculate scroll position
@@ -69,14 +79,24 @@ export default function CalendarScreen() {
   };
 
   const handleDateSelect = async (date: Date) => {
-    // Set the selected date in storage so the editor can load it
-    await StorageService.setCurrentDate(date);
-    // Navigate to today's notes tab
-    router.push('/(tabs)/');
+    // Check if this date has content
+    const dateStr = format(date, 'yyyy-MM-dd');
+    const noteForDate = allNotes.find(n => n.date === dateStr);
+    
+    if (noteForDate?.content && noteForDate.content.trim().length > 0) {
+      // Navigate to All Notes and scroll to this date
+      router.push({
+        pathname: '/(tabs)/allnotes',
+        params: { scrollToDate: dateStr }
+      });
+    } else {
+      // Return false to trigger shake animation in CalendarGrid
+      return false;
+    }
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.backgroundColor }]}>
       <ScrollView 
         ref={scrollViewRef}
         style={styles.scrollContainer}
@@ -87,7 +107,7 @@ export default function CalendarScreen() {
       >
         {months.map((monthDate, index) => (
           <View key={monthDate.toISOString()} style={styles.monthContainer}>
-            <Text style={styles.monthTitle}>{format(monthDate, 'MMMM yyyy')}</Text>
+            <Text style={[styles.monthTitle, { color: theme.primaryText }]}>{format(monthDate, 'MMMM yyyy')}</Text>
             <CalendarGrid
               monthData={getMonthData(monthDate)}
               monthDate={monthDate}

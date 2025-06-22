@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, Platform, Dimensions, Animate
 import { Mood } from '../types';
 import { VerySadEmoji, SadEmoji, NeutralEmoji, HappyEmoji, VeryHappyEmoji } from './FlatEmojis';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface MoodSelectorProps {
   selectedMood?: Mood;
@@ -18,6 +19,7 @@ const moods = [
 ] as const;
 
 export default function MoodSelector({ selectedMood, onMoodSelect }: MoodSelectorProps) {
+  const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
   const emojiSize = screenWidth < 380 ? 50 : 60;
@@ -68,7 +70,7 @@ export default function MoodSelector({ selectedMood, onMoodSelect }: MoodSelecto
   
   return (
     <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 10) }]}>
-      <Animated.Text style={[styles.title, { opacity: fadeAnim }]}>How did you feel today?</Animated.Text>
+      <Animated.Text style={[styles.title, { opacity: fadeAnim, color: theme.primaryText }]}>How did you feel today?</Animated.Text>
       <View style={styles.moodContainer}>
         {moods.map((mood, index) => {
           const EmojiComponent = mood.component;

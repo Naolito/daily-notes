@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
 import WebFonts from '../components/WebFonts';
 import { useCustomFonts } from '../hooks/useFonts';
+import { ThemeProvider } from '../contexts/ThemeContext';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -20,7 +21,7 @@ export default function RootLayout() {
   }
 
   return (
-    <>
+    <ThemeProvider>
       <WebFonts />
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
@@ -32,6 +33,6 @@ export default function RootLayout() {
           }} 
         />
       </Stack>
-    </>
+    </ThemeProvider>
   );
 }

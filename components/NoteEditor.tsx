@@ -23,6 +23,7 @@ import { generateJuneMockData } from '../utils/generateMockData';
 import { responsiveFontSize, responsivePadding, heightPercentage, scale } from '../utils/responsive';
 import { VerySadEmoji, SadEmoji, NeutralEmoji, HappyEmoji, VeryHappyEmoji } from '../components/FlatEmojis';
 import { Dimensions } from 'react-native';
+import { useTheme } from '../contexts/ThemeContext';
 
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -44,6 +45,7 @@ const moodColors = {
 };
 
 export default function NoteEditor() {
+  const { theme } = useTheme();
   const [note, setNote] = useState<Note | null>(null);
   const [content, setContent] = useState('');
   const [selectedMood, setSelectedMood] = useState<Mood | undefined>();
@@ -80,7 +82,9 @@ export default function NoteEditor() {
       
       if (currentNote) {
         setNote(currentNote);
-        setContent(currentNote.content || '');
+        // Treat whitespace-only content as empty when loading
+        const loadedContent = currentNote.content?.trim() ? currentNote.content : '';
+        setContent(loadedContent);
         setSelectedMood(currentNote.mood);
         setImages(currentNote.images);
         // If mood exists, set animation values to show it
@@ -105,7 +109,11 @@ export default function NoteEditor() {
 
   const saveNote = async () => {
     try {
-      const savedNote = await NoteService.saveCurrentNote(content, selectedMood, images);
+      // Treat whitespace-only content as empty
+      const trimmedContent = content.trim();
+      const contentToSave = trimmedContent.length === 0 ? '' : content;
+      
+      const savedNote = await NoteService.saveCurrentNote(contentToSave, selectedMood, images);
       setNote(savedNote);
     } catch (error) {
       console.error('Error saving note:', error);
@@ -210,20 +218,26 @@ export default function NoteEditor() {
 
   if (isLoading) {
     return (
-      <View style={styles.loadingContainer}>
-        <Text>Loading...</Text>
+      <View style={[styles.loadingContainer, { backgroundColor: theme.backgroundColor }]}>
+        <Text style={{ color: theme.primaryText }}>Loading...</Text>
       </View>
     );
   }
 
   return (
     <KeyboardAvoidingView 
-      style={styles.container}
+      style={[styles.container, { backgroundColor: theme.backgroundColor }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <View style={StyleSheet.absoluteFillObject}>
-        <PaperTexture />
-        <NotebookBackground startFromTop={true} />
+        {theme.themeType === 'notebook' && <PaperTexture />}
+        {theme.showNotebookLines && (
+          <NotebookBackground 
+            startFromTop={true} 
+            lineColor={theme.notebookLineColor}
+            opacity={theme.notebookLineOpacity}
+          />
+        )}
       </View>
       <View style={styles.contentContainer}>
         <View 
@@ -235,16 +249,37 @@ export default function NoteEditor() {
             }
           }}
         >
-          {dateBoxHeight > 0 && (
+          {dateBoxHeight > 0 && theme.useDottedBorders && (
             <SimpleDashedBorder 
               width={screenWidth - 64} 
               height={dateBoxHeight} 
-              color={selectedMood ? moodColors[selectedMood] : '#333'} 
+              color={selectedMood ? moodColors[selectedMood] : theme.borderColor} 
             />
           )}
-          <View style={styles.dateBox}>
+          <View style={[
+            styles.dateBox,
+            theme.cardStyle && !theme.useDottedBorders && {
+              ...theme.cardStyle,
+              shadowOffset: { width: 0, height: 2 },
+              elevation: 4,
+              borderColor: selectedMood ? moodColors[selectedMood] : theme.cardStyle.borderColor,
+            }
+          ]}>
             <View style={styles.dateRow}>
-              <Text style={styles.dateHeader}>{displayDate}</Text>
+              <Text style={[
+                styles.dateHeader, 
+                { 
+                  color: theme.primaryText,
+                  fontFamily: theme.useHandwrittenFont 
+                    ? Platform.select({
+                        ios: 'Noteworthy-Bold',
+                        android: 'sans-serif',
+                        default: "'Patrick Hand', cursive"
+                      })
+                    : undefined,
+                  fontSize: theme.useHandwrittenFont ? 32 : 24,
+                }
+              ]}>{displayDate}</Text>
               {selectedMood && (
                 <Animated.View 
                   style={[
@@ -271,7 +306,16 @@ export default function NoteEditor() {
         >
           <TextInput
             ref={textInputRef}
-            style={styles.textInput}
+            style={[
+              styles.textInput, 
+              { 
+                color: theme.primaryText,
+                fontFamily: theme.useHandwrittenFont ? 'LettersForLearners' : undefined,
+                fontSize: theme.useHandwrittenFont ? 26 : 18,
+                lineHeight: theme.useHandwrittenFont ? responsivePadding(26) : 24,
+                paddingTop: theme.useHandwrittenFont ? (responsivePadding(26) - 26 + 8) : 8,
+              }
+            ]}
             multiline
             value={content}
             onChangeText={handleContentChange}
@@ -279,6 +323,8 @@ export default function NoteEditor() {
             scrollEnabled
             autoCorrect={false}
             autoCapitalize="sentences"
+            placeholder="Type here..."
+            placeholderTextColor={`${theme.secondaryText}80`}
           />
         </TouchableOpacity>
       </View>
@@ -329,11 +375,6 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: '400',
     color: '#2c2c2c',
-    fontFamily: Platform.select({
-      ios: 'Noteworthy-Bold',
-      android: 'sans-serif',
-      default: "'Patrick Hand', cursive"
-    }),
     textAlign: 'center',
     letterSpacing: -0.5,
   },
@@ -348,7 +389,6 @@ const styles = StyleSheet.create({
     lineHeight: responsivePadding(26), // Exact match with notebook lines
     color: '#1a1a1a',
     backgroundColor: 'transparent',
-    fontFamily: 'LettersForLearners',
     textAlignVertical: 'top',
     letterSpacing: -0.3,
     padding: 0,
