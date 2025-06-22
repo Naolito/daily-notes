@@ -21,6 +21,12 @@ const CURRENT_DATE_KEY = '@current_date';
 export const FirebaseStorageService = {
   async saveNote(note: Note): Promise<void> {
     try {
+      // Skip Firebase operations if db is not available
+      if (!db) {
+        console.log('Firebase disabled - skipping cloud save');
+        return;
+      }
+
       const user = AuthService.getCurrentUser();
       if (!user) {
         throw new Error('User not authenticated');
@@ -51,6 +57,8 @@ export const FirebaseStorageService = {
 
   async getNoteByDate(date: string): Promise<Note | null> {
     try {
+      if (!db) return null;
+      
       const user = AuthService.getCurrentUser();
       if (!user) {
         throw new Error('User not authenticated');
@@ -81,6 +89,8 @@ export const FirebaseStorageService = {
 
   async getAllNotes(): Promise<Note[]> {
     try {
+      if (!db) return [];
+      
       const user = AuthService.getCurrentUser();
       if (!user) {
         throw new Error('User not authenticated');
@@ -133,6 +143,8 @@ export const FirebaseStorageService = {
 
   async deleteOldNotes(daysToKeep: number = 30): Promise<void> {
     try {
+      if (!db) return;
+      
       const user = AuthService.getCurrentUser();
       if (!user) {
         throw new Error('User not authenticated');

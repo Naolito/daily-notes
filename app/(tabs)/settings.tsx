@@ -15,7 +15,7 @@ import { useTheme, ThemeType } from '../../contexts/ThemeContext';
 import { useRouter } from 'expo-router';
 import { auth } from '../../config/firebase';
 import SilentAuthService from '../../services/silentAuth';
-import CrashlyticsTest from '../../components/CrashlyticsTest';
+// import CrashlyticsTest from '../../components/CrashlyticsTest';
 
 const skins = [
   { id: 'notebook', name: 'Classic Notebook', color: '#f5f0eb' },
@@ -34,14 +34,18 @@ export default function SettingsScreen() {
   useEffect(() => {
     // Check if user is anonymous
     const checkAuthStatus = () => {
-      if (auth.currentUser) {
+      if (auth && auth.currentUser) {
         setIsAnonymous(auth.currentUser.isAnonymous);
       }
     };
 
     checkAuthStatus();
-    const unsubscribe = auth.onAuthStateChanged(checkAuthStatus);
-    return unsubscribe;
+    
+    // Only subscribe if auth is available
+    if (auth && auth.onAuthStateChanged) {
+      const unsubscribe = auth.onAuthStateChanged(checkAuthStatus);
+      return unsubscribe;
+    }
   }, []);
 
   const handleLinkAccount = async () => {
@@ -223,8 +227,8 @@ export default function SettingsScreen() {
             />
           </View>
           
-          {/* Development Section - Only show in development */}
-          {__DEV__ && Platform.OS !== 'web' && (
+          {/* Development Section - Disabled for Expo Go */}
+          {false && __DEV__ && Platform.OS !== 'web' && (
             <>
               <View style={[styles.divider, { backgroundColor: theme.dividerColor }]} />
               
@@ -263,7 +267,8 @@ export default function SettingsScreen() {
               </TouchableOpacity>
             </View>
             
-            <CrashlyticsTest />
+            {/* <CrashlyticsTest /> */}
+            <Text style={{ color: theme.primaryText }}>Crashlytics testing disabled in Expo Go</Text>
           </View>
         </View>
       </Modal>

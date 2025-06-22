@@ -9,11 +9,13 @@ class AuthService {
   private authStateListeners: ((user: User | null) => void)[] = [];
 
   constructor() {
-    // Listen to auth state changes
-    onAuthStateChanged(auth, (user) => {
-      this.currentUser = user;
-      this.notifyAuthStateListeners(user);
-    });
+    // Listen to auth state changes only if auth is available
+    if (auth && auth.onAuthStateChanged) {
+      onAuthStateChanged(auth, (user) => {
+        this.currentUser = user;
+        this.notifyAuthStateListeners(user);
+      });
+    }
   }
 
 

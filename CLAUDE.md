@@ -55,3 +55,10 @@ The app uses a hybrid storage approach:
 - **Local Storage**: AsyncStorage for offline access and immediate feedback
 - **Cloud Storage**: Firebase Firestore for syncing across devices
 - **Hybrid Service**: Automatically handles online/offline states and syncing
+
+## Debug & Development
+
+- **IMPORTANT**: Always maintain DEBUG.md with disabled libraries and known issues
+- **Expo Go Testing**: Many native modules are disabled for Expo Go compatibility
+- **Re-enabling**: Follow DEBUG.md instructions to restore full functionality
+- **Testing Strategy**: Use Expo Go for UI, development builds for full features

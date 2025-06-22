@@ -8,13 +8,20 @@ import {
   linkWithCredential
 } from 'firebase/auth';
 import { auth } from '../config/firebase';
-import { GoogleSignin, statusCodes, User as GoogleUser } from '@react-native-google-signin/google-signin';
-import * as AppleAuthentication from 'expo-apple-authentication';
+// Native auth modules - disabled for Expo Go
+// import { GoogleSignin, statusCodes, User as GoogleUser } from '@react-native-google-signin/google-signin';
+// import * as AppleAuthentication from 'expo-apple-authentication';
 
 class SilentAuthService {
   private hasAttemptedAuth = false;
 
   async initializeAuth(): Promise<User | null> {
+    // Skip if Firebase is not available
+    if (!auth) {
+      console.log('Firebase auth not available - running in offline mode');
+      return null;
+    }
+
     if (this.hasAttemptedAuth) {
       return auth.currentUser;
     }
@@ -28,15 +35,9 @@ class SilentAuthService {
         return auth.currentUser;
       }
 
-      // Platform-specific silent authentication
-      if (Platform.OS === 'ios') {
-        return await this.silentAppleSignIn();
-      } else if (Platform.OS === 'android') {
-        return await this.silentGoogleSignIn();
-      } else {
-        // Web fallback to anonymous
-        return await this.anonymousSignIn();
-      }
+      // For now, always use anonymous auth in Expo Go
+      // Native auth will be enabled in production builds
+      return await this.anonymousSignIn();
     } catch (error) {
       console.log('Silent auth failed, falling back to anonymous:', error);
       return await this.anonymousSignIn();
@@ -44,6 +45,9 @@ class SilentAuthService {
   }
 
   private async silentGoogleSignIn(): Promise<User | null> {
+    // Disabled for Expo Go - native modules not available
+    return await this.anonymousSignIn();
+    /*
     try {
       // Configure Google Sign-In
       GoogleSignin.configure({
@@ -74,9 +78,13 @@ class SilentAuthService {
       console.error('Silent Google sign-in failed:', error);
       return await this.anonymousSignIn();
     }
+    */
   }
 
   private async silentAppleSignIn(): Promise<User | null> {
+    // Disabled for Expo Go - native modules not available
+    return await this.anonymousSignIn();
+    /*
     try {
       // Check if Apple Authentication is available
       const isAvailable = await AppleAuthentication.isAvailableAsync();
@@ -113,10 +121,12 @@ class SilentAuthService {
       console.error('Silent Apple sign-in failed:', error);
       return await this.anonymousSignIn();
     }
+    */
   }
 
   private async anonymousSignIn(): Promise<User | null> {
     try {
+      if (!auth) return null;
       const result = await signInAnonymously(auth);
       console.log('Signed in anonymously:', result.user.uid);
       return result.user;
@@ -128,10 +138,15 @@ class SilentAuthService {
 
   // Method to upgrade anonymous account to permanent account
   async linkAnonymousAccount(): Promise<User | null> {
-    if (!auth.currentUser || !auth.currentUser.isAnonymous) {
-      return auth.currentUser;
+    if (!auth || !auth.currentUser || !auth.currentUser.isAnonymous) {
+      return auth?.currentUser || null;
     }
 
+    // Disabled for Expo Go - native modules not available
+    console.log('Account linking disabled in Expo Go');
+    return auth.currentUser;
+    
+    /*
     try {
       if (Platform.OS === 'ios') {
         const credential = await AppleAuthentication.signInAsync({
@@ -168,6 +183,7 @@ class SilentAuthService {
     }
     
     return auth.currentUser;
+    */
   }
 }
 
