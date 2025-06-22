@@ -274,7 +274,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgb(220, 214, 214)',
     paddingHorizontal: 16,
     paddingVertical: 8,
-    paddingBottom: 12, // Extra padding for taller nav menu
+    paddingBottom: 8,
     borderTopWidth: 1,
     borderTopColor: '#e0e0e0',
   },
