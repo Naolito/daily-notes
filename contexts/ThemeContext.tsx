@@ -73,7 +73,7 @@ const themes: Record<ThemeType, Theme> = {
     settingsButtonBackground: 'rgb(220, 214, 214)',
     showNotebookLines: true,
     notebookLineColor: '#4169E1',
-    notebookLineOpacity: 0.075,
+    notebookLineOpacity: 0.15,
     useHandwrittenFont: true,
     useDottedBorders: false,
     cardStyle: {
@@ -166,7 +166,7 @@ const themes: Record<ThemeType, Theme> = {
     settingsButtonBackground: '#f8bbd0',
     showNotebookLines: true,
     notebookLineColor: '#f8bbd0',
-    notebookLineOpacity: 0.2,
+    notebookLineOpacity: 0.25,
     useHandwrittenFont: true,
     useDottedBorders: false,
     cardStyle: {
