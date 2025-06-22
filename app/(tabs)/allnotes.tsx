@@ -16,6 +16,7 @@ import { Note } from '../../types';
 import { VerySadEmoji, SadEmoji, NeutralEmoji, HappyEmoji, VeryHappyEmoji } from '../../components/FlatEmojis';
 import NotebookBackground from '../../components/NotebookBackground';
 import SimpleDashedBorder from '../../components/SimpleDashedBorder';
+import { responsivePadding } from '../../utils/responsive';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -105,12 +106,9 @@ export default function AllNotesScreen() {
   
   useFocusEffect(
     React.useCallback(() => {
-      if (notes.length > 0) {
-        setTimeout(() => {
-          scrollViewRef.current?.scrollToEnd({ animated: true });
-        }, 100);
-      }
-    }, [notes.length])
+      // Reload notes every time the screen gains focus
+      loadAllNotes();
+    }, [])
   );
 
   const loadAllNotes = async () => {
@@ -119,11 +117,17 @@ export default function AllNotesScreen() {
       const sortedNotes = allNotes.sort((a, b) => 
         new Date(a.date).getTime() - new Date(b.date).getTime()
       );
+      
+      // Only scroll to end if we have more notes than before (new note added)
+      const shouldScroll = sortedNotes.length > notes.length;
+      
       setNotes(sortedNotes);
       
-      setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: false });
-      }, 100);
+      if (shouldScroll && sortedNotes.length > 0) {
+        setTimeout(() => {
+          scrollViewRef.current?.scrollToEnd({ animated: true });
+        }, 100);
+      }
     } catch (error) {
       console.error('Error loading notes:', error);
     } finally {
@@ -162,11 +166,6 @@ export default function AllNotesScreen() {
             setContentHeight(height + 100); // Add extra space
           }}
         >
-          {contentHeight > 0 && (
-            <View style={[StyleSheet.absoluteFillObject, { height: contentHeight }]}>
-              <NotebookBackground height={contentHeight} startFromTop={true} />
-            </View>
-          )}
           {notes
             .filter((item) => {
               if (!searchText.trim()) return true;
@@ -260,11 +259,12 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   noteText: {
-    fontSize: 26, // Intermediate between 22 and 33
-    lineHeight: 26, // Match line spacing
+    fontSize: 26,
+    lineHeight: responsivePadding(26), // Exact match with notebook lines
     color: '#1a1a1a',
     fontFamily: 'LettersForLearners',
     letterSpacing: -0.3,
+    paddingTop: responsivePadding(26) - 26 + 8, // Align text to bottom of lines
   },
   searchBarContainer: {
     position: 'absolute',

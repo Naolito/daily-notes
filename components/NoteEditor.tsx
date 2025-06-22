@@ -20,7 +20,7 @@ import { Note, Mood } from '../types';
 import { NoteService } from '../services/noteService';
 import { StorageService } from '../services/storage';
 import { generateJuneMockData } from '../utils/generateMockData';
-import { responsiveFontSize, responsivePadding, heightPercentage } from '../utils/responsive';
+import { responsiveFontSize, responsivePadding, heightPercentage, scale } from '../utils/responsive';
 import { VerySadEmoji, SadEmoji, NeutralEmoji, HappyEmoji, VeryHappyEmoji } from '../components/FlatEmojis';
 import { Dimensions } from 'react-native';
 
@@ -70,8 +70,10 @@ export default function NoteEditor() {
 
   const loadCurrentNote = async () => {
     try {
-      const currentDateFromStorage = await StorageService.getCurrentDate();
-      setCurrentDate(currentDateFromStorage);
+      // Always use today's date for the Today's Notes screen
+      const today = new Date();
+      setCurrentDate(today);
+      await StorageService.setCurrentDate(today);
       
       const currentNote = await NoteService.getCurrentNote();
       console.log('Current note:', currentNote); // Debug
@@ -342,14 +344,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   textInput: {
-    fontSize: 26, // Intermediate between 22 and 33
-    lineHeight: 26, // Match line spacing
+    fontSize: 26,
+    lineHeight: responsivePadding(26), // Exact match with notebook lines
     color: '#1a1a1a',
     backgroundColor: 'transparent',
     fontFamily: 'LettersForLearners',
     textAlignVertical: 'top',
     letterSpacing: -0.3,
     padding: 0,
+    paddingTop: responsivePadding(26) - 26 + 8, // Align text to bottom of lines
     flex: 1,
     borderWidth: 0,
     borderColor: 'transparent',

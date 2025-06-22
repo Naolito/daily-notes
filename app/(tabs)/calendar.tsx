@@ -23,11 +23,27 @@ export default function CalendarScreen() {
 
   useEffect(() => {
     loadAllNotes();
-    // Scroll to current month after a brief delay
-    setTimeout(() => {
-      scrollViewRef.current?.scrollTo({ y: 12 * 400, animated: false });
-    }, 100);
   }, []);
+
+  useEffect(() => {
+    // Find the index of current month and calculate scroll position
+    const currentMonthIndex = months.findIndex(month => 
+      month.getMonth() === currentDate.getMonth() && 
+      month.getFullYear() === currentDate.getFullYear()
+    );
+    
+    if (currentMonthIndex !== -1) {
+      // Approximate height per month (adjust as needed)
+      const monthHeight = 400;
+      // Scroll to center the current month
+      setTimeout(() => {
+        scrollViewRef.current?.scrollTo({ 
+          y: currentMonthIndex * monthHeight - 100, 
+          animated: false 
+        });
+      }, 100);
+    }
+  }, [months]);
 
   const loadAllNotes = async () => {
     try {
