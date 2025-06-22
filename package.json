@@ -20,7 +20,6 @@
     "expo-navigation-bar": "^4.2.6",
     "expo-notifications": "^0.31.3",
     "expo-router": "~5.1.0",
-    "expo-splash-screen": "^0.30.9",
     "expo-status-bar": "~2.2.3",
     "react": "19.0.0",
     "react-dom": "19.0.0",

@@ -1,20 +1,16 @@
 import { Stack } from 'expo-router';
 import { useEffect } from 'react';
-import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import WebFonts from '../components/WebFonts';
 import { useCustomFonts } from '../hooks/useFonts';
 import { ThemeProvider, useTheme } from '../contexts/ThemeContext';
 import { NotificationService } from '../services/notificationService';
 
-SplashScreen.preventAutoHideAsync();
-
 export default function RootLayout() {
   const fontsLoaded = useCustomFonts();
 
   useEffect(() => {
     if (fontsLoaded) {
-      SplashScreen.hideAsync();
       // Initialize notifications
       NotificationService.initialize();
     }
