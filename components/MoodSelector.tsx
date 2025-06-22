@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform, Dimensions, Animated } from 'react-native';
+import { BlurView } from 'expo-blur';
 import { Mood } from '../types';
 import { VerySadEmoji, SadEmoji, NeutralEmoji, HappyEmoji, VeryHappyEmoji } from './FlatEmojis';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -69,53 +70,102 @@ export default function MoodSelector({ selectedMood, onMoodSelect }: MoodSelecto
     });
   };
   
-  return (
-    <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 10) }]}>
-      <Animated.Text style={[
-        styles.title, 
-        { 
-          opacity: fadeAnim, 
-          color: theme.primaryText,
-          fontFamily: theme.useHandwrittenFont ? Platform.select({
-            ios: 'Noteworthy-Light',
-            android: 'sans-serif',
-            default: "'Permanent Marker', cursive"
-          }) : undefined,
-          transform: theme.useHandwrittenFont ? [{ rotate: '-1.5deg' }] : [],
-          fontWeight: theme.useHandwrittenFont ? '300' : '400',
-        }
-      ]}>
-        How did you feel today?
-      </Animated.Text>
-      <View style={styles.moodContainer}>
-        {moods.map((mood, index) => {
-          const EmojiComponent = mood.component;
-          const isSelected = animatingMood === mood.value;
-          
-          return (
-            <Animated.View
-              key={mood.value}
-              style={[
-                styles.moodButtonWrapper,
-                {
-                  opacity: fadeAnim,
-                  transform: isSelected ? [{ scale: scaleAnim }] : [],
-                }
-              ]}
-            >
-              <TouchableOpacity
-                style={styles.moodButton}
-                onPress={() => handleMoodPress(mood.value as Mood)}
-                disabled={isAnimating}
+  // Show centered when no mood selected
+  if (!selectedMood && !isAnimating) {
+    return (
+      <>
+        <BlurView 
+          intensity={20} 
+          style={styles.blurOverlay} 
+          tint={theme.themeType === 'dark' ? 'dark' : 'light'} 
+        />
+        <View style={styles.centeredContainer}>
+          <Text style={[
+            styles.title, 
+            { 
+              color: theme.primaryText,
+              fontFamily: theme.useHandwrittenFont ? Platform.select({
+                ios: 'Noteworthy-Light',
+                android: 'sans-serif',
+                default: "'Permanent Marker', cursive"
+              }) : undefined,
+              transform: [],
+              fontWeight: theme.useHandwrittenFont ? '300' : '400',
+            }
+          ]}>
+            How are you feeling today?
+          </Text>
+          <View style={styles.moodContainer}>
+            {moods.map((mood) => {
+              const EmojiComponent = mood.component;
+              return (
+                <TouchableOpacity
+                  key={mood.value}
+                  style={styles.moodButton}
+                  onPress={() => handleMoodPress(mood.value as Mood)}
+                >
+                  <EmojiComponent size={emojiSize} />
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+      </>
+    );
+  }
+  
+  // Original bottom position when mood is selected
+  if (selectedMood || isAnimating) {
+    return (
+      <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 10) }]}>
+        <Animated.Text style={[
+          styles.title, 
+          { 
+            opacity: fadeAnim, 
+            color: theme.primaryText,
+            fontFamily: theme.useHandwrittenFont ? Platform.select({
+              ios: 'Noteworthy-Light',
+              android: 'sans-serif',
+              default: "'Permanent Marker', cursive"
+            }) : undefined,
+            transform: theme.useHandwrittenFont ? [{ rotate: '-1.5deg' }] : [],
+            fontWeight: theme.useHandwrittenFont ? '300' : '400',
+          }
+        ]}>
+          How did you feel today?
+        </Animated.Text>
+        <View style={styles.moodContainer}>
+          {moods.map((mood, index) => {
+            const EmojiComponent = mood.component;
+            const isSelected = animatingMood === mood.value;
+            
+            return (
+              <Animated.View
+                key={mood.value}
+                style={[
+                  styles.moodButtonWrapper,
+                  {
+                    opacity: fadeAnim,
+                    transform: isSelected ? [{ scale: scaleAnim }] : [],
+                  }
+                ]}
               >
-                <EmojiComponent size={emojiSize} />
-              </TouchableOpacity>
-            </Animated.View>
-          );
-        })}
+                <TouchableOpacity
+                  style={styles.moodButton}
+                  onPress={() => handleMoodPress(mood.value as Mood)}
+                  disabled={isAnimating}
+                >
+                  <EmojiComponent size={emojiSize} />
+                </TouchableOpacity>
+              </Animated.View>
+            );
+          })}
+        </View>
       </View>
-    </View>
-  );
+    );
+  }
+  
+  return null;
 }
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -146,5 +196,25 @@ const styles = StyleSheet.create({
   },
   moodButton: {
     padding: 5,
+  },
+  // Centered styles
+  blurOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 998,
+  },
+  centeredContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    zIndex: 999,
   },
 });
