@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, PanResponder, Animated, ActivityIndicator, Dimensions } from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity, PanResponder, Animated, ActivityIndicator, Dimensions, ScrollView } from 'react-native';
 import { format, addMonths, subMonths, startOfMonth } from 'date-fns';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
@@ -17,18 +17,23 @@ const { width: screenWidth } = Dimensions.get('window');
 export default function CalendarScreen() {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
-  const [currentMonth, setCurrentMonth] = useState(startOfMonth(new Date()));
+  const [currentMonthIndex, setCurrentMonthIndex] = useState(0);
   const [monthsData, setMonthsData] = useState<{ [key: string]: Note[] }>({});
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const scrollViewRef = useRef<ScrollView>(null);
   
-  // Animation for swipe
-  const translateX = useRef(new Animated.Value(0)).current;
+  // Keep track of current position
+  const scrollX = useRef(new Animated.Value(screenWidth)).current;
+  
+  // Calculate the three months we need based on current index
+  const baseMonth = startOfMonth(new Date());
+  const currentMonth = addMonths(baseMonth, currentMonthIndex);
+  const prevMonth = subMonths(currentMonth, 1);
+  const nextMonth = addMonths(currentMonth, 1);
   
   // Load notes for a specific month
   const loadMonthNotes = async (month: Date): Promise<Note[]> => {
-    const monthKey = format(month, 'yyyy-MM');
-    
     try {
       const allNotes = await HybridStorageService.getAllNotes();
       const monthStart = startOfMonth(month);
@@ -50,9 +55,6 @@ export default function CalendarScreen() {
   const loadAdjacentMonths = React.useCallback(async () => {
     setIsLoading(true);
     
-    const prevMonth = subMonths(currentMonth, 1);
-    const nextMonth = addMonths(currentMonth, 1);
-    
     try {
       const [prevNotes, currentNotes, nextNotes] = await Promise.all([
         loadMonthNotes(prevMonth),
@@ -60,21 +62,29 @@ export default function CalendarScreen() {
         loadMonthNotes(nextMonth),
       ]);
       
-      setMonthsData({
+      setMonthsData(prev => ({
+        ...prev,
         [format(prevMonth, 'yyyy-MM')]: prevNotes,
         [format(currentMonth, 'yyyy-MM')]: currentNotes,
         [format(nextMonth, 'yyyy-MM')]: nextNotes,
-      });
+      }));
     } catch (error) {
       console.error('Error loading months:', error);
     } finally {
       setIsLoading(false);
     }
-  }, [currentMonth]);
+  }, [currentMonth, prevMonth, nextMonth]);
 
   useEffect(() => {
     loadAdjacentMonths();
   }, [loadAdjacentMonths]);
+
+  useEffect(() => {
+    // Always scroll to middle position after render
+    setTimeout(() => {
+      scrollViewRef.current?.scrollTo({ x: screenWidth, animated: false });
+    }, 100);
+  }, [currentMonthIndex]);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -82,46 +92,32 @@ export default function CalendarScreen() {
     }, [loadAdjacentMonths])
   );
 
-  // Handle month navigation
-  const navigateMonth = (direction: 'prev' | 'next') => {
-    const newMonth = direction === 'next' 
-      ? addMonths(currentMonth, 1) 
-      : subMonths(currentMonth, 1);
+  // Handle scroll end
+  const handleScrollEnd = (event: any) => {
+    const offsetX = event.nativeEvent.contentOffset.x;
     
-    // Animate transition
-    Animated.timing(translateX, {
-      toValue: direction === 'next' ? -screenWidth : screenWidth,
-      duration: 200,
-      useNativeDriver: true,
-    }).start(() => {
-      setCurrentMonth(newMonth);
-      translateX.setValue(0);
-    });
+    if (offsetX < screenWidth / 2) {
+      // Scrolled to previous month
+      setCurrentMonthIndex(currentMonthIndex - 1);
+    } else if (offsetX > screenWidth * 1.5) {
+      // Scrolled to next month
+      setCurrentMonthIndex(currentMonthIndex + 1);
+    } else {
+      // Snap back to center
+      scrollViewRef.current?.scrollTo({ x: screenWidth, animated: true });
+    }
   };
 
-  // Pan responder for swipe gestures
-  const panResponder = useRef(
-    PanResponder.create({
-      onMoveShouldSetPanResponder: (_, gestureState) => {
-        return Math.abs(gestureState.dx) > 20;
-      },
-      onPanResponderMove: (_, gestureState) => {
-        translateX.setValue(gestureState.dx);
-      },
-      onPanResponderRelease: (_, gestureState) => {
-        if (gestureState.dx > 50) {
-          navigateMonth('prev');
-        } else if (gestureState.dx < -50) {
-          navigateMonth('next');
-        } else {
-          Animated.spring(translateX, {
-            toValue: 0,
-            useNativeDriver: true,
-          }).start();
-        }
-      },
-    })
-  ).current;
+  // Handle month navigation via buttons
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    if (direction === 'next') {
+      scrollViewRef.current?.scrollTo({ x: screenWidth * 2, animated: true });
+      setTimeout(() => setCurrentMonthIndex(currentMonthIndex + 1), 300);
+    } else {
+      scrollViewRef.current?.scrollTo({ x: 0, animated: true });
+      setTimeout(() => setCurrentMonthIndex(currentMonthIndex - 1), 300);
+    }
+  };
 
   const getMonthData = (month: Date): DayData[] => {
     const monthKey = format(month, 'yyyy-MM');
@@ -159,15 +155,7 @@ export default function CalendarScreen() {
       </View>
       
       {/* Header with month navigation */}
-      <Animated.View 
-        style={[
-          styles.header, 
-          { 
-            paddingTop: Math.max(insets.top, 20),
-            transform: [{ translateX }]
-          }
-        ]}
-      >
+      <View style={[styles.header, { paddingTop: Math.max(insets.top, 20) }]}>
         <TouchableOpacity 
           onPress={() => navigateMonth('prev')}
           style={styles.navButton}
@@ -185,7 +173,7 @@ export default function CalendarScreen() {
         >
           <Ionicons name="chevron-forward" size={24} color={theme.primaryText} />
         </TouchableOpacity>
-      </Animated.View>
+      </View>
       
       {/* Calendar content */}
       <View style={styles.calendarWrapper}>
@@ -194,23 +182,49 @@ export default function CalendarScreen() {
             <ActivityIndicator size="large" color={theme.primaryText} />
           </View>
         ) : (
-          <Animated.View 
-            style={[
-              styles.calendarContainer,
-              {
-                transform: [{ translateX }],
-              },
-            ]}
-            {...panResponder.panHandlers}
+          <ScrollView
+            ref={scrollViewRef}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onMomentumScrollEnd={handleScrollEnd}
+            scrollEventThrottle={16}
+            contentOffset={{ x: screenWidth, y: 0 }}
+            style={styles.scrollView}
           >
-            <CalendarGrid
-              monthData={getMonthData(currentMonth)}
-              monthDate={currentMonth}
-              selectedDate={null}
-              onDateSelect={handleDateSelect}
-              notes={monthsData[format(currentMonth, 'yyyy-MM')] || []}
-            />
-          </Animated.View>
+            {/* Previous month */}
+            <View style={styles.monthContainer}>
+              <CalendarGrid
+                monthData={getMonthData(prevMonth)}
+                monthDate={prevMonth}
+                selectedDate={null}
+                onDateSelect={handleDateSelect}
+                notes={monthsData[format(prevMonth, 'yyyy-MM')] || []}
+              />
+            </View>
+            
+            {/* Current month */}
+            <View style={styles.monthContainer}>
+              <CalendarGrid
+                monthData={getMonthData(currentMonth)}
+                monthDate={currentMonth}
+                selectedDate={null}
+                onDateSelect={handleDateSelect}
+                notes={monthsData[format(currentMonth, 'yyyy-MM')] || []}
+              />
+            </View>
+            
+            {/* Next month */}
+            <View style={styles.monthContainer}>
+              <CalendarGrid
+                monthData={getMonthData(nextMonth)}
+                monthDate={nextMonth}
+                selectedDate={null}
+                onDateSelect={handleDateSelect}
+                notes={monthsData[format(nextMonth, 'yyyy-MM')] || []}
+              />
+            </View>
+          </ScrollView>
         )}
       </View>
     </View>
@@ -237,11 +251,13 @@ const styles = StyleSheet.create({
   },
   calendarWrapper: {
     flex: 1,
-    overflow: 'hidden',
-    paddingHorizontal: 16,
   },
-  calendarContainer: {
+  scrollView: {
     flex: 1,
+  },
+  monthContainer: {
+    width: screenWidth,
+    paddingHorizontal: 16,
   },
   loadingContainer: {
     flex: 1,
