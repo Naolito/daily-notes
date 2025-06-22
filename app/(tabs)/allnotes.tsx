@@ -67,20 +67,29 @@ const HighlightedText = ({ text, searchText, textColor, fontFamily, fontSize }: 
 
 const NoteItem = ({ item, searchText, theme }: { item: Note; searchText: string; theme: any }) => {
   const [itemHeight, setItemHeight] = useState(0);
+  const [isLayoutReady, setIsLayoutReady] = useState(false);
   const noteWidth = screenWidth - 32;
   const borderColor = item.mood ? moodColors[item.mood] : theme.borderColor;
+  
+  // Force layout measurement on mount
+  useEffect(() => {
+    // Small delay to ensure component is rendered
+    const timer = setTimeout(() => {
+      setIsLayoutReady(false);
+    }, 10);
+    return () => clearTimeout(timer);
+  }, [item.id]);
   
   return (
     <View 
       style={styles.noteWrapper}
       onLayout={(e) => {
         const { height } = e.nativeEvent.layout;
-        if (height !== itemHeight) {
-          setItemHeight(height);
-        }
+        setItemHeight(height);
+        setIsLayoutReady(true);
       }}
     >
-      {itemHeight > 0 && theme.useDottedBorders && (
+      {isLayoutReady && itemHeight > 0 && theme.useDottedBorders && (
         <SimpleDashedBorder width={noteWidth} height={itemHeight} color={borderColor} />
       )}
       <TouchableOpacity style={[
@@ -178,6 +187,12 @@ export default function AllNotesScreen() {
     React.useCallback(() => {
       // Reload notes every time the screen gains focus
       loadAllNotes();
+      // Force re-render for new notes to ensure borders appear
+      if (notes.length > 0) {
+        setTimeout(() => {
+          setNotes([...notes]);
+        }, 100);
+      }
     }, [params.scrollToDate])
   );
 
