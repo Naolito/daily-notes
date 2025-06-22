@@ -27,6 +27,12 @@ export default function TabLayout() {
           title: 'Calendar',
         }}
       />
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: 'Settings',
+        }}
+      />
     </Tabs>
   );
 }

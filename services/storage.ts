@@ -88,5 +88,15 @@ export const StorageService = {
       console.error('Error getting current date:', error);
       return new Date();
     }
+  },
+
+  async clearAllData(): Promise<void> {
+    try {
+      await AsyncStorage.clear();
+      console.log('All data cleared');
+    } catch (error) {
+      console.error('Error clearing data:', error);
+      throw error;
+    }
   }
 };

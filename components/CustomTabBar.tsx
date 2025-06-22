@@ -41,6 +41,7 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
                 {route.name === 'index' && <Ionicons name="today-outline" size={32} color={isFocused ? ACTIVE_COLOR : '#666'} />}
                 {route.name === 'allnotes' && <Ionicons name="search-outline" size={32} color={isFocused ? ACTIVE_COLOR : '#666'} />}
                 {route.name === 'calendar' && <Ionicons name="calendar-outline" size={32} color={isFocused ? ACTIVE_COLOR : '#666'} />}
+                {route.name === 'settings' && <Ionicons name="settings-outline" size={32} color={isFocused ? ACTIVE_COLOR : '#666'} />}
                 <Text style={[
                   styles.tabText,
                   { color: isFocused ? ACTIVE_COLOR : '#666' }

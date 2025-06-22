@@ -11,8 +11,8 @@ interface SimpleDashedBorderProps {
 export default function SimpleDashedBorder({ width, height, color = '#333' }: SimpleDashedBorderProps) {
   const strokeWidth = 3;
   const radius = 8;
-  const dashLength = 6;
-  const dashGap = 4;
+  const dashLength = 3;
+  const dashGap = 3;
   
   // Create a rounded rectangle path
   const path = `
