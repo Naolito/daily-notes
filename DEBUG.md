@@ -143,13 +143,13 @@ To re-enable all features:
 - **Impact**: Visual noise, poor UX
 - **Fix needed**: Proper SafeAreaView or status bar configuration
 
-### 3c. Calendar Performance
+### 3c. Calendar Performance ✓ FIXED
 - **Issue**: ~1 second delay when opening/closing calendar
 - **Impact**: Feels sluggish, poor user experience
-- **Possible causes**: 
-  - Heavy re-renders
-  - Unoptimized calculations
-  - Missing memoization
+- **Solution**: Redesigned to show only one month at a time
+  - Added navigation arrows and swipe gestures
+  - Loads only current month's notes
+  - Dramatic performance improvement
 
 ### 3d. Font Loading Issues
 - **Issue**: Notebook font not loading for date in Today page
