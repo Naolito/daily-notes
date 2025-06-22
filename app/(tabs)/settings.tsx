@@ -146,19 +146,22 @@ export default function SettingsScreen() {
           <Text style={[styles.sectionTitle, { color: theme.primaryText }]}>Notifications</Text>
           
           <View style={styles.settingsGroup}>
-            <View style={[
-              styles.settingItem, 
-              { backgroundColor: theme.settingsButtonBackground },
-              theme.themeType === 'paper' && {
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.06,
-                shadowRadius: 6,
-                elevation: 2,
-                borderWidth: 0,
-              }
-            ]}>
-              <View style={styles.settingContent}>
+            <TouchableOpacity 
+              style={[
+                styles.settingItem, 
+                { backgroundColor: theme.settingsButtonBackground },
+                theme.themeType === 'paper' && {
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.06,
+                  shadowRadius: 6,
+                  elevation: 2,
+                  borderWidth: 0,
+                }
+              ]}
+              onPress={() => handleNotificationToggle(!notificationSettings.enabled)}
+            >
+              <View style={[styles.settingContent, { flex: 1 }]}>
                 <Ionicons name="notifications-outline" size={24} color={theme.secondaryText} />
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.settingText, { color: theme.primaryText }]}>Daily Reminders</Text>
@@ -167,13 +170,18 @@ export default function SettingsScreen() {
                   </Text>
                 </View>
               </View>
-              <Switch
-                value={notificationSettings.enabled}
-                onValueChange={handleNotificationToggle}
-                trackColor={{ false: theme.borderColor, true: '#4CAF50' }}
-                thumbColor={notificationSettings.enabled ? '#ffffff' : '#f4f3f4'}
-              />
-            </View>
+              <View style={[
+                styles.checkbox,
+                { 
+                  borderColor: notificationSettings.enabled ? '#2196F3' : theme.borderColor,
+                  backgroundColor: notificationSettings.enabled ? '#2196F3' : 'transparent' 
+                }
+              ]}>
+                {notificationSettings.enabled && (
+                  <Ionicons name="checkmark" size={16} color="#ffffff" />
+                )}
+              </View>
+            </TouchableOpacity>
           </View>
           
           <View style={[styles.divider, { backgroundColor: theme.dividerColor }]} />
@@ -297,5 +305,13 @@ const styles = StyleSheet.create({
     fontSize: responsiveFontSize(14),
     color: '#666',
     marginTop: 2,
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
